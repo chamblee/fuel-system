@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/fuelsystem/static/css/main.f18055e2.chunk.css",
+    "main.js": "/fuelsystem/static/js/main.64fecb46.chunk.js",
+    "main.js.map": "/fuelsystem/static/js/main.64fecb46.chunk.js.map",
+    "runtime-main.js": "/fuelsystem/static/js/runtime-main.d3dafc8e.js",
+    "runtime-main.js.map": "/fuelsystem/static/js/runtime-main.d3dafc8e.js.map",
+    "static/js/2.84a70d8b.chunk.js": "/fuelsystem/static/js/2.84a70d8b.chunk.js",
+    "static/js/2.84a70d8b.chunk.js.map": "/fuelsystem/static/js/2.84a70d8b.chunk.js.map",
+    "index.html": "/fuelsystem/index.html",
+    "precache-manifest.2183ab5438ca546588f6b0f349f9fb72.js": "/fuelsystem/precache-manifest.2183ab5438ca546588f6b0f349f9fb72.js",
+    "service-worker.js": "/fuelsystem/service-worker.js",
+    "static/css/main.f18055e2.chunk.css.map": "/fuelsystem/static/css/main.f18055e2.chunk.css.map",
+    "static/js/2.84a70d8b.chunk.js.LICENSE.txt": "/fuelsystem/static/js/2.84a70d8b.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.d3dafc8e.js",
+    "static/js/2.84a70d8b.chunk.js",
+    "static/css/main.f18055e2.chunk.css",
+    "static/js/main.64fecb46.chunk.js"
+  ]
+}
