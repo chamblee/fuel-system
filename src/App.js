@@ -435,38 +435,53 @@ class ToggleSwitch extends React.Component {
 class RotarySwitch extends React.Component {
 	constructor(props) {
 		super(props);
-		this.el = null;
+		this.el_switch = null;
+		this.el_primerButton = null;
 		this.switchGroup = null; //identify svg group for conditionally setting the switch default/OFF position to vertical
-		this.tl= new TimelineMax({ paused: true }); // eslint-disable-line
+		this.tl_rotateSwitch= new TimelineMax({ paused: true }); // eslint-disable-line
 		this.handleClick = () => {this.props.onSwitchEvent(this.props.id);};
+		this.primerButtonPressed = () => {this.props.onSwitchEvent(this.props.id);};
+		this.primerButtonReleased = () => {this.props.onSwitchEvent(this.props.id);};
 	}
 
 	componentDidMount() {
-		TweenMax.set(this.el, {transformOrigin: 'center'}); // eslint-disable-line
+		TweenMax.set(this.el_switch, {transformOrigin: 'center'}); // eslint-disable-line
 		
 		//if switch is a bypass switch then OFF position is vertical
 		if (this.props.id.indexOf('bypass') > -1) {
 			TweenMax.set(this.switchGroup, {transformOrigin: 'center', rotate: 90}); // eslint-disable-line
 		}
 
-		this.tl.to(this.el, 0.5, {rotate: 90});
+		this.tl_rotateSwitch.to(this.el_switch, 0.5, {rotate: 90});
 	}
 
 	render() {
 		if (this.props.switchedOn) {
-			this.tl.play();
+			this.tl_rotateSwitch.play();
 		} else if (!this.props.switchedOn) {
-			this.tl.reverse();
+			this.tl_rotateSwitch.reverse();
+		}
+
+		let renderPrimerButton = () => {
+			if (this.props.id === 'crossfeed_primer_button') {
+				return <g id="crossfeed_primer_btn" className="rotary_switch" ref={primerButton => this.el_primerButton = primerButton} onMouseDown={this.primerButtonPressed} onMouseUp={this.primerButtonReleased}>
+						<path d="M317.74,487.21a9.68,9.68,0,1,0,13.55-2.07,9.66,9.66,0,0,0-13.55,2.07Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-21)"/>
+						<path id="button" d="M325.54,498.1a5.16,5.16,0,1,0-5.16-5.16,5.19,5.19,0,0,0,5.16,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
+						</g>
+			}
 		}
 		
 		return (
-			<g ref={rotarySwitch => this.el = rotarySwitch} id={this.props.id} className="rotary_switch" transform={this.props.transform} onClick={this.handleClick}>
-				<path d="M100.23,502.5a16.6,16.6,0,1,0-16.61,16.59,16.63,16.63,0,0,0,16.61-16.59Z" transform="translate(-4.51 -14.6)" fill="#4d4d4d" stroke="#1c1c1c" strokeLinejoin="round" strokeWidth="0.99" fillRule="evenodd"/>
-				<g className="switch-group" ref={switchGroup => this.switchGroup = switchGroup}>
-					<path d="M98.87,505l-14,4.79a5.44,5.44,0,0,1-2.44,0c-5-1.7-10-3.4-14.91-5.13a1,1,0,0,1-.65-.77,9.59,9.59,0,0,1,0-2.78,1,1,0,0,1,.68-.76c5-1.73,10-3.46,14.91-5.22a5.44,5.44,0,0,1,2.44.06q7.44,2.55,14.88,5.16a.9.9,0,0,1,.65.76,9.25,9.25,0,0,1,0,2.78,1.12,1.12,0,0,1-.65.77Z" transform="translate(-4.51 -14.6)" fill="#333" fillRule="evenodd"/>
-					<path d="M98.87,504.57l-14,4a5.9,5.9,0,0,1-2.44,0c-5-1.42-10-2.87-14.91-4.31a.85.85,0,0,1-.65-.63,6.7,6.7,0,0,1,0-2.32.92.92,0,0,1,.68-.65c5-1.45,10-2.89,14.91-4.37a7.14,7.14,0,0,1,2.44,0l14.88,4.34a.85.85,0,0,1,.65.65,6.46,6.46,0,0,1,0,2.32,1,1,0,0,1-.65.63Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.51"/>
-					<path d="M100.4,504.4H66.9c-.05-.62-.08-1.27-.08-1.9s0-1.27.08-1.9h33.5a16.46,16.46,0,0,1,0,3.8Z" transform="translate(-4.51 -14.6)" fill="red" stroke="#d1d1d1" strokeMiterlimit="10" strokeWidth="0.5"/>
+			<g>
+				<g ref={rotarySwitch => this.el_switch = rotarySwitch} id={this.props.id} className="rotary_switch" transform={this.props.transform} onClick={this.handleClick} visibility={this.props.id === 'crossfeed_primer_button' ? "hidden" : "visible"}>
+					<path d="M100.23,502.5a16.6,16.6,0,1,0-16.61,16.59,16.63,16.63,0,0,0,16.61-16.59Z" transform="translate(-4.51 -14.6)" fill="#4d4d4d" stroke="#1c1c1c" strokeLinejoin="round" strokeWidth="0.99" fillRule="evenodd"/>
+					<g className="switch-group" ref={switchGroup => this.switchGroup = switchGroup}>
+						<path d="M98.87,505l-14,4.79a5.44,5.44,0,0,1-2.44,0c-5-1.7-10-3.4-14.91-5.13a1,1,0,0,1-.65-.77,9.59,9.59,0,0,1,0-2.78,1,1,0,0,1,.68-.76c5-1.73,10-3.46,14.91-5.22a5.44,5.44,0,0,1,2.44.06q7.44,2.55,14.88,5.16a.9.9,0,0,1,.65.76,9.25,9.25,0,0,1,0,2.78,1.12,1.12,0,0,1-.65.77Z" transform="translate(-4.51 -14.6)" fill="#333" fillRule="evenodd"/>
+						<path d="M98.87,504.57l-14,4a5.9,5.9,0,0,1-2.44,0c-5-1.42-10-2.87-14.91-4.31a.85.85,0,0,1-.65-.63,6.7,6.7,0,0,1,0-2.32.92.92,0,0,1,.68-.65c5-1.45,10-2.89,14.91-4.37a7.14,7.14,0,0,1,2.44,0l14.88,4.34a.85.85,0,0,1,.65.65,6.46,6.46,0,0,1,0,2.32,1,1,0,0,1-.65.63Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.51"/>
+						<path d="M100.4,504.4H66.9c-.05-.62-.08-1.27-.08-1.9s0-1.27.08-1.9h33.5a16.46,16.46,0,0,1,0,3.8Z" transform="translate(-4.51 -14.6)" fill="red" stroke="#d1d1d1" strokeMiterlimit="10" strokeWidth="0.5"/>
+					</g>
 				</g>
+				{renderPrimerButton()}
 			</g>
 		);
 	}
@@ -487,8 +502,8 @@ class QuantityIndicator extends React.Component {
 			} 
 		});
 		this.indicatorTestRun = () => {
+			console.log('test run');
 			this.tl_indicatorTest.play();
-			
 		}
 		this.indicatorTestStop = () => {
 			this.tl_indicatorTest.pause(0);
@@ -512,7 +527,8 @@ class QuantityIndicator extends React.Component {
 		TweenMax.set(this.indicatorNeedle, {transformOrigin: '77% 17.6%', rotate: this.props.rotationDeg}); // eslint-disable-line
 		TweenMax.set(this.indicatorTestButton, {transformOrigin: '50% 50%'}); // eslint-disable-line
 
-		this.tl_indicatorTest.to(this.indicatorNeedle, {rotate: 0, duration: 3});
+		this.tl_indicatorTest.to(this.indicatorNeedle, {rotate: 0, duration: 3})
+		.to(this.indicatorTestButton, {scale: 0.95, duration: 0.5}, '-=3');
 	}
 
 	componentDidUpdate(prevProps) {
@@ -844,6 +860,12 @@ class App extends React.Component {
 					fuelSources: ["right_dump_valve"]
 				},
 				{
+					id: "crossfeed_primer_line",
+					points: "213.29 132.72 216.22 132.72 216.22 120.22 213.22 120.22 213.29 132.72",
+					fuelPresent: false,
+					fuelSources: ["crossfeed_primer_valve"]
+				},
+				{
 					id: "SPR_line1",
 					points: "386.69 292.42 370.99 292.42 375.4 287.71 375.4 274.53 377.7 274.53 377.7 254.52 380.49 254.52 380.49 265.52 415.04 265.52 415.04 268.63 380.49 268.63 380.49 274.6 382.6 274.6 382.6 287.98 386.69 292.42",
 					fuelPresent: false,
@@ -1166,7 +1188,7 @@ class App extends React.Component {
 					id: "crossfeed_primer_valve",
 					open: false,
 					failed: false,
-					fuelSources: [],
+					fuelSources: ["crossfeed_line1"],
 					fuelPresent: false,
 					path_1_d: "M219.1,126.3a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,1,1,0-10.6Z",
 					path_2_d: "M214.17,136.54a7,7,0,1,0,0-9.87A6.94,6.94,0,0,0,214.17,136.54Zm9.09-.77a5.89,5.89,0,0,1-7.46.71l8.18-8.17a5.88,5.88,0,0,1-.72,7.46Zm-8.32-8.33a5.89,5.89,0,0,1,7.46-.71l-8.18,8.17A5.9,5.9,0,0,1,214.94,127.44Z",
@@ -1739,6 +1761,12 @@ class App extends React.Component {
 					connectedValve: "crossfeed_right_EXT_valve",
 					transform: "translate(372, 0)",
 					switchedOn: false
+				},
+				{
+					id: "crossfeed_primer_button",
+					connectedValve: "crossfeed_primer_valve",
+					transform: "",
+					switchedOn: false
 				}
 		],
 		quantityIndicators: [
@@ -1914,6 +1942,7 @@ class App extends React.Component {
 	}
 
 	handleRotarySwitch = (id) => {
+		console.log('id: ', id);
 		let stateTest = this.state.stateTestVal;
 		let fluxCounter = this.state.systemPSI_fluxCounter;
 		let crossfeed_manifold_2 = this.state.manifolds.find(manifold => manifold.id === 'crossfeed_line2');
@@ -1930,7 +1959,15 @@ class App extends React.Component {
 
 		//if targeted valve is not failed then toggle valve open/closed
 		if (!this.state.rotaryValves[rotaryValveIndex].failed) {
-			newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], open: !newRotaryValves[rotaryValveIndex].open};
+			if (id === 'crossfeed_primer_button') {
+				console.log('crossfeed primer button activated');
+				let crossfeedSeparationIndex = newRotaryValves.findIndex(valve => valve.id === 'crossfeed_separation_valve');
+				newRotaryValves[crossfeedSeparationIndex] = {...newRotaryValves[crossfeedSeparationIndex], open: !newRotaryValves[crossfeedSeparationIndex].open};
+				newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], open: !newRotaryValves[rotaryValveIndex].open};
+			} else {
+				newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], open: !newRotaryValves[rotaryValveIndex].open};
+			}
+			
 			if (newRotaryValves[rotaryValveIndex].open && crossfeed_manifold_2.fuelPresent) {
 				fluxCounter += 1;
 			}
