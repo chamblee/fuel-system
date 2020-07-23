@@ -290,7 +290,7 @@ class FuelPump extends React.Component {
 
 	componentDidMount() {
 		TweenMax.set(this.el, {transformOrigin: 'center'}); // eslint-disable-line
-		this.tl.to(this.el, {rotation:"-360", duration: 2, repeat:-1});
+		this.tl.to(this.el, {rotation:"-360", duration: 2, repeat:-1, ease: "none"});
 
 		if (this.props.id.indexOf('AUX') > -1 || this.props.id.indexOf('EXT') > -1) {
 			this.light_tl.to(this.emptyLight, {autoAlpha:1, duration:0.5})
