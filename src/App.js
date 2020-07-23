@@ -290,7 +290,7 @@ class FuelPump extends React.Component {
 
 	componentDidMount() {
 		TweenMax.set(this.el, {transformOrigin: 'center'}); // eslint-disable-line
-		this.tl.to(this.el, {rotation:"-360", duration: 2, ease:"Linear.easeNone", repeat:-1});
+		this.tl.to(this.el, {rotation:"-360", duration: 2, repeat:-1});
 
 		if (this.props.id.indexOf('AUX') > -1 || this.props.id.indexOf('EXT') > -1) {
 			this.light_tl.to(this.emptyLight, {autoAlpha:1, duration:0.5})
@@ -301,7 +301,9 @@ class FuelPump extends React.Component {
 	render() {
 		if (this.props.fuelPresent) {
 			this.tl.play();
-			this.light_tl.play();
+			if (this.props.emptyLightStatus === 'flash') {
+				this.light_tl.play();
+			}
 		} else if (!this.props.fuelPresent) {
 			this.tl.pause();
 			this.light_tl.pause(0);
@@ -780,7 +782,7 @@ class App extends React.Component {
 					id: "left_EXT_main_line",
 					points: "160.32 261.68 172.24 261.68 172.24 241.6 278.83 241.6 278.83 217.58 276.71 217.58 276.71 214.39 278.77 214.37 278.7 211.39 285.29 211.39 285.29 137.68 279.14 137.68 279.14 134.55 285.29 134.55 285.29 120.66 288.21 120.66 288.21 124.66 298.47 124.66 298.47 127.78 288.21 127.78 288.21 218.77 285.35 218.77 285.35 214.65 281.69 214.65 281.69 244.69 175.08 244.69 175.08 261.57 185.65 261.57 185.65 264.83 175.08 264.83 175.08 269.82 172.16 269.82 172.16 264.76 160.35 264.76 160.32 261.68",
 					fuelPresent: false,
-					fuelSources: ["pump_left_EXT_FWD", "pump_left_EXT_AFT","left_bypass_valve"],
+					fuelSources: ["pump_left_EXT_FWD", "pump_left_EXT_AFT","left_bypass_valve", "left_refuel_manifold_springValve"],
 					connectedPressureSwitch: "left_EXT_main_pressureSwitch"
 				},
 				{
@@ -812,7 +814,7 @@ class App extends React.Component {
 					id: "right_EXT_main_line",
 					points: "542 264.68 542 261.48 551.93 261.48 551.93 244.71 443.92 244.71 443.92 214.69 440.3 214.69 440.3 217.62 437.37 217.62 437.37 127.71 426.42 127.71 426.42 124.44 437.43 124.44 437.43 120.19 440.42 120.19 440.42 134.63 447.64 134.63 447.64 137.89 440.36 137.89 440.36 211.5 450.19 211.5 450.19 214.76 446.83 214.76 446.83 241.58 554.94 241.58 554.94 261.55 565.21 261.55 565.21 264.81 554.88 264.81 554.88 270.4 551.89 270.4 551.89 264.81 542 264.68",
 					fuelPresent: false,
-					fuelSources: ["pump_right_EXT_FWD", "pump_right_EXT_AFT","right_bypass_valve"],
+					fuelSources: ["pump_right_EXT_FWD", "pump_right_EXT_AFT","right_bypass_valve", "right_refuel_manifold_springValve"],
 					connectedPressureSwitch: "right_EXT_main_pressureSwitch"
 				},
 				{
@@ -838,14 +840,16 @@ class App extends React.Component {
 					points: "140.27 108.56 140.27 105.13 188.12 105.13 188.12 95.17 206.52 95.17 206.52 98.54 191.02 98.54 191.02 105.26 364.84 105.26 364.84 108.63 288.27 108.63 288.27 113.64 285.24 113.64 285.24 108.43 265.86 108.43 265.86 114.43 262.9 114.43 262.9 108.43 216.28 108.43 216.28 117 213.19 117 213.19 108.43 140.27 108.56",
 					fuelPresent: false,
 					fuelSources: ["crossfeed_1_valve", "crossfeed_2_valve", "crossfeed_left_AUX_valve", "crossfeed_left_EXT_valve", "crossfeed_separation_valve"],
-					fuelTrap: ["crossfeed_1_valve", "crossfeed_2_valve", "crossfeed_left_AUX_valve", "crossfeed_left_EXT_valve", "crossfeed_separation_valve"]
+					fuelTrap: ["crossfeed_1_valve", "crossfeed_2_valve", "crossfeed_left_AUX_valve", "crossfeed_left_EXT_valve", "crossfeed_3_valve", "crossfeed_4_valve", "crossfeed_right_AUX_valve", "crossfeed_right_EXT_valve", "crossfeed_primer_valve"],
+					fuelTrapped: false
 				},
 				{
 					id: "crossfeed_line2",
 					points: "369.49 108.43 369.49 105.22 448.91 105.22 448.91 93.61 451.86 93.61 451.86 105.29 534.66 105.29 534.66 98.27 518.71 98.27 518.71 94.99 537.67 94.99 537.67 105.35 589.24 105.35 589.24 108.7 462.65 108.7 462.65 113.75 459.71 113.75 459.71 108.3 440.39 108.3 440.39 114.14 437.26 114.14 437.26 108.3 380.53 108.3 380.53 212.97 377.58 212.97 377.58 108.47 369.49 108.43",
 					fuelPresent: false,
 					fuelSources: ["crossfeed_3_valve", "crossfeed_4_valve", "crossfeed_right_AUX_valve", "crossfeed_right_EXT_valve", "crossfeed_separation_valve"],
-					fuelTrap: ["crossfeed_3_valve", "crossfeed_4_valve", "crossfeed_right_AUX_valve", "crossfeed_right_EXT_valve", "crossfeed_separation_valve"]
+					fuelTrap: ["crossfeed_1_valve", "crossfeed_2_valve", "crossfeed_left_AUX_valve", "crossfeed_left_EXT_valve", "crossfeed_3_valve", "crossfeed_4_valve", "crossfeed_right_AUX_valve", "crossfeed_right_EXT_valve", "crossfeed_primer_valve"],
+					fuelTrapped: false
 				},
 				{
 					id: "left_dump_line",
@@ -1071,7 +1075,7 @@ class App extends React.Component {
 					id: "crossfeed_1_valve",
 					open: false,
 					failed: false,
-					fuelSources: ["tank_1_boost_line2", "crossfeed_line1"],
+					fuelSources: ["tank_1_boost_line1", "crossfeed_line1"],
 					fuelPresent: false,
 					path_1_d: "M146.37,121.2a5.31,5.31,0,0,1-10.61,0h0a5.31,5.31,0,0,1,10.61,0Z",
 					path_2_d: "M146,116.27a7,7,0,1,0,0,9.87A7,7,0,0,0,146,116.27Zm-9.1.77a5.89,5.89,0,0,1,7.47-.72l-8.18,8.18a5.89,5.89,0,0,1,.71-7.46Zm8.33,8.32a5.88,5.88,0,0,1-7.46.72l8.17-8.18A5.89,5.89,0,0,1,145.22,125.36Z",
@@ -1084,7 +1088,7 @@ class App extends React.Component {
 					id: "crossfeed_2_valve",
 					open: false,
 					failed: false,
-					fuelSources: ["tank_2_boost_line2", "crossfeed_line1"],
+					fuelSources: ["tank_2_boost_line1", "crossfeed_line1"],
 					fuelPresent: false,
 					path_1_d: "M219.45,111.41a5.31,5.31,0,1,1-10.61,0h0a5.31,5.31,0,0,1,10.61,0Z",
 					path_2_d: "M219.08,106.48a7,7,0,1,0,0,9.87A7,7,0,0,0,219.08,106.48Zm-9.1.77a5.89,5.89,0,0,1,7.46-.71l-8.17,8.17a5.89,5.89,0,0,1,.71-7.46Zm8.33,8.33a5.85,5.85,0,0,1-4.17,1.72,5.78,5.78,0,0,1-3.29-1l8.17-8.17A5.9,5.9,0,0,1,218.31,115.58Z",
@@ -1097,7 +1101,7 @@ class App extends React.Component {
 					id: "crossfeed_3_valve",
 					open: false,
 					failed: false,
-					fuelSources: ["tank_3_boost_line2", "crossfeed_line2"],
+					fuelSources: ["tank_3_boost_line1", "crossfeed_line2"],
 					fuelPresent: false,
 					path_1_d: "M525.13,111.06a5.31,5.31,0,0,1-10.61,0h0a5.31,5.31,0,0,1,10.61,0Z",
 					path_2_d: "M524.76,106.13a7,7,0,1,0,0,9.86A6.93,6.93,0,0,0,524.76,106.13Zm-9.1.77a5.89,5.89,0,0,1,7.47-.72L515,114.36a5.89,5.89,0,0,1,.71-7.46Zm8.33,8.32a5.88,5.88,0,0,1-7.46.72l8.17-8.18A5.89,5.89,0,0,1,524,115.22Z",
@@ -1110,7 +1114,7 @@ class App extends React.Component {
 					id: "crossfeed_4_valve",
 					open: false,
 					failed: false,
-					fuelSources: ["tank_4_boost_line2", "crossfeed_line2"],
+					fuelSources: ["tank_4_boost_line1", "crossfeed_line2"],
 					fuelPresent: false,
 					path_1_d: "M601.29,121.34a5.3,5.3,0,1,1-10.6,0h0a5.3,5.3,0,1,1,10.6,0Z",
 					path_2_d: "M600.93,116.4a7,7,0,1,0,0,9.87A7,7,0,0,0,600.93,116.4Zm-9.1.77a5.89,5.89,0,0,1,7.46-.71l-8.18,8.17a5.88,5.88,0,0,1,.72-7.46Zm8.33,8.33a5.91,5.91,0,0,1-7.47.71l8.18-8.17A5.9,5.9,0,0,1,600.16,125.5Z",
@@ -1416,6 +1420,26 @@ class App extends React.Component {
 					circX: "572.64",
 					circY: "262.44",
 					pathD: "M574.84,276s-.3,3.7-1.27,3.52c-1.63-.29-1.53-4.35-1.53-4.35s.65,5-.79,4.38c-1.14-.52-1.35-4.38-1.35-4.38s.59,5.18-.87,4.47-1.35-4.71-1.35-4.71.39,5.78-1.13,4.47c-1-.86-1.18-4.47-1.18-4.47"
+				},
+				{
+					id: "left_refuel_manifold_springValve",
+					fuelPresent: false,
+					rectX: "283.46",
+					rectY: "215.26",
+					springClasses: "spring topCenter",
+					circX: "286.97",
+					circY: "227.78",
+					pathD: "M292.52,240.07s-3.71-.3-3.53-1.27c.29-1.63,4.36-1.53,4.36-1.53s-5,.64-4.39-.79c.52-1.14,4.39-1.35,4.39-1.35s-5.19.59-4.47-.88,4.71-1.35,4.71-1.35-5.79.4-4.48-1.13c.86-1,4.48-1.17,4.48-1.17"
+				},
+				{
+					id: "right_refuel_manifold_springValve",
+					fuelPresent: false,
+					rectX: "435.3",
+					rectY: "215.26",
+					springClasses: "spring topCenter",
+					circX: "438.81",
+					circY: "227.78",
+					pathD: "M444.36,240.07s-3.7-.3-3.53-1.27c.3-1.63,4.36-1.53,4.36-1.53s-5,.64-4.38-.79c.52-1.14,4.38-1.35,4.38-1.35s-5.19.59-4.47-.88,4.71-1.35,4.71-1.35-5.78.4-4.48-1.13c.87-1,4.48-1.17,4.48-1.17"
 				}
 		],
 		fuelPumps: [
@@ -1483,41 +1507,47 @@ class App extends React.Component {
 					transform: "translate(145, 2)",
 					connectedSpringValve: "left_AUX_springValve",
 					fuelPresent: false,
-					failed: false
+					failed: false,
+					emptyLightStatus: 'flash'
 				},
 				{
 					id: "pump_left_EXT_FWD",
 					transform: "translate(52, 110)",
 					connectedSpringValve: "left_EXT_FWD_springValve",
-					fuelPresent: false
+					fuelPresent: false,
+					emptyLightStatus: 'flash'
 				},
 				{
 					id: "pump_left_EXT_AFT",
 					transform: "translate(-27, 110)",
 					connectedSpringValve: "left_EXT_AFT_springValve",
 					fuelPresent: false,
-					failed: false
+					failed: false,
+					emptyLightStatus: 'flash'
 				},
 				{
 					id: "pump_right_AUX",
 					transform: "translate(262, 2)",
 					connectedSpringValve: "right_AUX_springValve",
 					fuelPresent: false,
-					failed: false
+					failed: false,
+					emptyLightStatus: 'flash'
 				},
 				{
 					id: "pump_right_EXT_FWD",
 					transform: "translate(365, 110)",
 					connectedSpringValve: "right_EXT_FWD_springValve",
 					fuelPresent: false,
-					failed: false
+					failed: false,
+					emptyLightStatus: 'flash'
 				},
 				{
 					id: "pump_right_EXT_AFT",
 					transform: "translate(425, 110)",
 					connectedSpringValve: "right_EXT_AFT_springValve",
 					fuelPresent: false,
-					failed: false
+					failed: false,
+					emptyLightStatus: 'flash'
 				}
 		],
 		pressureSwitches: [
@@ -1896,17 +1926,15 @@ class App extends React.Component {
 		let connectedSpringValve = '';
 		let springValveIndex = -1;
 		
-		if (connectedFuelPump) {
-			connectedSpringValve = newFuelPumps[fuelPumpIndex].connectedSpringValve;
-			springValveIndex = newSpringValves.findIndex(valve => valve.id === connectedSpringValve);
-		}
-
 		//get connected dump valve
 		let connectedDumpValve = newToggleSwitches[toggleSwitchIndex].connectedDumpValve;
 		let dumpValveIndex = newRotaryValves.findIndex(valve => valve.id === connectedDumpValve);
 
 		//if no connected pump then continue as valve-only switch
-		if (!connectedFuelPump) {
+		if (connectedFuelPump) {
+			connectedSpringValve = newFuelPumps[fuelPumpIndex].connectedSpringValve;
+			springValveIndex = newSpringValves.findIndex(valve => valve.id === connectedSpringValve);
+		} else {
 			newRotaryValves[dumpValveIndex] = {...newRotaryValves[dumpValveIndex], fuelPresent: !newRotaryValves[dumpValveIndex].fuelPresent, open: !newRotaryValves[dumpValveIndex].open}
 			this.setState(prevState => {
 				return {
@@ -1929,7 +1957,13 @@ class App extends React.Component {
 			if (connectedDumpValve && !newRotaryValves[dumpValveIndex].failed) {
 				newRotaryValves[dumpValveIndex] = {...newRotaryValves[dumpValveIndex], fuelPresent: !newRotaryValves[dumpValveIndex].fuelPresent, open: !newRotaryValves[dumpValveIndex].open}
 			}
+
+			if ((newFuelPumps[fuelPumpIndex].id.indexOf('AUX') > -1 || newFuelPumps[fuelPumpIndex].id.indexOf('EXT') > -1) && id.indexOf('dump') > -1) {
+				newFuelPumps[fuelPumpIndex] = {...newFuelPumps[fuelPumpIndex], emptyLightStatus: 'no flash'};
+			}
+			
 		}
+
 		this.setState(prevState => {
 			return {
 				toggleSwitches: newToggleSwitches,
@@ -1942,27 +1976,28 @@ class App extends React.Component {
 	}
 
 	handleRotarySwitch = (id) => {
-		console.log('id: ', id);
 		let stateTest = this.state.stateTestVal;
 		let fluxCounter = this.state.systemPSI_fluxCounter;
 		let crossfeed_manifold_2 = this.state.manifolds.find(manifold => manifold.id === 'crossfeed_line2');
 		
 		//toggle switch status
-		const rotarySwitchIndex = this.state.rotarySwitches.findIndex(rotarySwitch => rotarySwitch.id === id);
+		let rotarySwitchIndex = this.state.rotarySwitches.findIndex(rotaryswitch => rotaryswitch.id === id);
 		let newRotarySwitches = [...this.state.rotarySwitches];
 		newRotarySwitches[rotarySwitchIndex] = {...newRotarySwitches[rotarySwitchIndex], switchedOn: !newRotarySwitches[rotarySwitchIndex].switchedOn};
 
 		//target rotary valves connected to this rotary switch
-		const connectedRotaryValve = this.state.rotarySwitches[rotarySwitchIndex].connectedValve;
-		const rotaryValveIndex = this.state.rotaryValves.findIndex(valve => valve.id === connectedRotaryValve);
+		let connectedRotaryValve = this.state.rotarySwitches[rotarySwitchIndex].connectedValve;
+		let rotaryValveIndex = this.state.rotaryValves.findIndex(valve => valve.id === connectedRotaryValve);
 		let newRotaryValves = [...this.state.rotaryValves];
 
 		//if targeted valve is not failed then toggle valve open/closed
 		if (!this.state.rotaryValves[rotaryValveIndex].failed) {
 			if (id === 'crossfeed_primer_button') {
-				console.log('crossfeed primer button activated');
+				let crossfeedSwitchIndex = newRotarySwitches.findIndex(rotaryswitch => rotaryswitch.id === 'crossfeed_switch_separation');
 				let crossfeedSeparationIndex = newRotaryValves.findIndex(valve => valve.id === 'crossfeed_separation_valve');
-				newRotaryValves[crossfeedSeparationIndex] = {...newRotaryValves[crossfeedSeparationIndex], open: !newRotaryValves[crossfeedSeparationIndex].open};
+				if (!newRotarySwitches[crossfeedSwitchIndex].switchedOn) {
+					newRotaryValves[crossfeedSeparationIndex] = {...newRotaryValves[crossfeedSeparationIndex], open: !newRotaryValves[crossfeedSeparationIndex].open};
+				}
 				newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], open: !newRotaryValves[rotaryValveIndex].open};
 			} else {
 				newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], open: !newRotaryValves[rotaryValveIndex].open};
@@ -2078,7 +2113,6 @@ class App extends React.Component {
 		let rotationIncrement = indicator.maxQuantity === 70000 ? .468 : indicator.maxQuantity === 7000 ? 4.68 : indicator.maxQuantity === 9000 ? 3.5 : 3.2;
 		let newQuantity = (rotationDeg / rotationIncrement * 100).toFixed(2);
 		newQuantityIndicators[indicatorIndex].quantity = newQuantity;
-		console.log('rot deg: ', rotationDeg, ' quantity: ', newQuantity);
 		this.setState(prevState => {
 			return {
 				quantityIndicators: newQuantityIndicators
@@ -2115,7 +2149,6 @@ class App extends React.Component {
 			let indicatorIndex = newQuantityIndicators.findIndex(indicator => indicator.id.indexOf(property) > -1);
 			if (dumpingStatuses[property]) {
 				newQuantityIndicators[indicatorIndex] = {...newQuantityIndicators[indicatorIndex], quantity: newQuantityIndicators[indicatorIndex].minQuantity, dumping: "yes"};
-				console.log("quantity: ", newQuantityIndicators[indicatorIndex].quantity);
 			} else if (newQuantityIndicators[indicatorIndex].dumping === 'yes') {
 				newQuantityIndicators[indicatorIndex].dumping = 'stop';
 			} else if (newQuantityIndicators[indicatorIndex].dumping === 'stop') {
@@ -2124,7 +2157,6 @@ class App extends React.Component {
 		}
 		this.setState((prevState) => {
 			if (prevState.quantityIndicators !== this.state.quantityIndicators) {
-				console.log('fuel dumping state test incr: ', stateTest + 1);
 				return {
 					quantityIndicators: newQuantityIndicators,
 					stateTestVal: stateTest + 1
@@ -2139,14 +2171,101 @@ class App extends React.Component {
 		let newFuelPumps = this.state.fuelPumps;
 		let newManifolds = this.state.manifolds;
 		let newRotaryValves = this.state.rotaryValves;
+		let newSpringValves = this.state.springValves;
 		let newPressureSwitches = this.state.pressureSwitches;
 		let newSystemPSI = this.state.systemPSI;
 		let stateTest = this.state.stateTestVal;
-		let allPumpsOff = newFuelPumps.every((pump) => {
-			return !pump.fuelPresent;
-		});
 
 		if ((this.state.stateTestVal === 0) || (prevState.stateTestVal !== this.state.stateTestVal)) {
+			/* ----------------------------------
+			REFUEL LINE SPRING VALVES FUEL PRESENCE
+			---------------------------------- */
+			let refuelManifoldIndex = newManifolds.findIndex(manifold => manifold.id === 'refuel_line');
+
+			let leftRefuelSpringValveIndex = newSpringValves.findIndex(spring => spring.id === 'left_refuel_manifold_springValve');
+			newSpringValves[leftRefuelSpringValveIndex].fuelPresent = newManifolds[refuelManifoldIndex].fuelPresent;
+			
+			let rightRefuelSpringValveIndex = newSpringValves.findIndex(spring => spring.id === 'right_refuel_manifold_springValve');
+			newSpringValves[rightRefuelSpringValveIndex].fuelPresent = newManifolds[refuelManifoldIndex].fuelPresent;
+
+			//Target relevant manifolds, pumps, and valves
+			let crossfeed_left_manifold = newManifolds.find(line => line.id === 'crossfeed_line1');
+			let crossfeed_right_manifold = newManifolds.find(line => line.id === 'crossfeed_line2');
+
+			let tank_1_Pump = newFuelPumps.find(pump => pump.id === 'pump_1_boost');
+			let tank_2_Pump = newFuelPumps.find(pump => pump.id === 'pump_2_boost');
+			let tank_3_Pump = newFuelPumps.find(pump => pump.id === 'pump_3_boost');
+			let tank_4_Pump = newFuelPumps.find(pump => pump.id === 'pump_4_boost');
+
+			let tank_1_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_1_valve');
+			let tank_2_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_2_valve');
+			let tank_3_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_3_valve');
+			let tank_4_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_4_valve');
+
+			let left_AUX_Pump = newFuelPumps.find(pump => pump.id === 'pump_left_AUX');
+			let left_EXT_Pumps = newFuelPumps.filter((pump) => {
+				return pump.id.indexOf('left_EXT') > -1;
+			});
+			let left_AUX_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_left_AUX_valve');
+			let left_EXT_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_left_EXT_valve');
+			let left_BypassValve = newRotaryValves.find(valve => valve.id === 'left_bypass_valve');
+
+			let right_AUX_Pump = newFuelPumps.find(pump => pump.id === 'pump_right_AUX');
+			let right_EXT_Pumps = newFuelPumps.filter((pump) => {
+				return pump.id.indexOf('right_EXT') > -1;
+			});
+			let right_AUX_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_right_AUX_valve');
+			let right_EXT_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_right_EXT_valve');
+			let right_BypassValve = newRotaryValves.find(valve => valve.id === 'right_bypass_valve');
+
+			let crossfeed_SeparationValve = newRotaryValves.find(valve => valve.id === 'crossfeed_separation_valve');
+
+			let dump_Pumps = newFuelPumps.filter((pump) => {
+				return pump.id.indexOf('dump') > -1;
+			});
+
+			//Check status of external pumps and dump pumps
+			let left_EXT_Pump_ON = left_EXT_Pumps.some((pump) => {
+				return pump.fuelPresent;
+			});
+			let right_EXT_Pump_ON = right_EXT_Pumps.some((pump) => {
+				return pump.fuelPresent;
+			});
+			let any_dump_Pumps_ON = dump_Pumps.some((pump) => {
+				return pump.fuelPresent;
+			});
+
+			//Check if crossfeed manifolds are pump fed
+			let crossfeed_line1_pumpfed = (tank_1_Pump.fuelPresent && tank_1_CrossfeedValve.open) || 
+			(tank_2_Pump.fuelPresent && tank_2_CrossfeedValve.open) || 
+			(tank_3_Pump.fuelPresent && tank_3_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
+			(tank_4_Pump.fuelPresent && tank_4_CrossfeedValve.open && crossfeed_SeparationValve.open) ||
+			(right_AUX_Pump.fuelPresent && right_AUX_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
+			(right_AUX_Pump.fuelPresent && right_BypassValve.open && right_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
+			(right_EXT_Pump_ON && right_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
+			(right_EXT_Pump_ON && right_AUX_CrossfeedValve.open && right_BypassValve.open && crossfeed_SeparationValve.open) || 
+			(left_AUX_Pump.fuelPresent && left_AUX_CrossfeedValve.open) || 
+			(left_AUX_Pump.fuelPresent && left_BypassValve.open && left_EXT_CrossfeedValve.open) || 
+			(left_EXT_Pump_ON && left_EXT_CrossfeedValve.open) || 
+			(left_EXT_Pump_ON && left_AUX_CrossfeedValve.open && left_BypassValve.open) ||
+			(any_dump_Pumps_ON && (left_EXT_CrossfeedValve.open || 
+			(left_BypassValve.open && left_AUX_CrossfeedValve.open)));
+			
+			let crossfeed_line2_pumpfed = (tank_3_Pump.fuelPresent && tank_3_CrossfeedValve.open) || 
+			(tank_4_Pump.fuelPresent && tank_4_CrossfeedValve.open) || 
+			(tank_1_Pump.fuelPresent && tank_1_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
+			(tank_2_Pump.fuelPresent && tank_2_CrossfeedValve.open && crossfeed_SeparationValve.open) ||
+			(left_AUX_Pump.fuelPresent && left_AUX_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
+			(left_AUX_Pump.fuelPresent && left_BypassValve.open && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
+			(left_EXT_Pump_ON && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
+			(left_EXT_Pump_ON && left_AUX_CrossfeedValve.open && left_BypassValve.open && crossfeed_SeparationValve.open) || 
+			(right_AUX_Pump.fuelPresent && right_AUX_CrossfeedValve.open) || 
+			(right_AUX_Pump.fuelPresent && right_BypassValve.open && right_EXT_CrossfeedValve.open) || 
+			(right_EXT_Pump_ON && right_EXT_CrossfeedValve.open) || 
+			(right_EXT_Pump_ON && right_AUX_CrossfeedValve.open && right_BypassValve.open) ||
+			(any_dump_Pumps_ON && (right_EXT_CrossfeedValve.open || 
+			(right_BypassValve.open && right_AUX_CrossfeedValve.open)));
+
 			/* ----------------------------------
 			MANIFOLD FUEL PRESENCE and PRESSURE
 			---------------------------------- */
@@ -2159,32 +2278,48 @@ class App extends React.Component {
 					manifold.fuelSources.forEach((fuelsource)  => {
 						let pumpindex = newFuelPumps.findIndex(pump => pump.id === fuelsource);
 						let valveindex = newRotaryValves.findIndex(valve => valve.id === fuelsource);
+						let springindex = newSpringValves.findIndex(spring => spring.id === fuelsource);
 
 						if (pumpindex > -1 && newFuelPumps[pumpindex].fuelPresent) {
 							fuelpresent = true;
 						}
 		
 						if (valveindex > -1 && (newRotaryValves[valveindex].fuelPresent && newRotaryValves[valveindex].open)) {
+							fuelpresent= true;
+						}
+
+						if (springindex > -1 && newSpringValves[springindex].fuelPresent) {
 							fuelpresent = true;
 						}
 					});
 
-					//Check if manifold has potential to trap fuel
+					//Check if manifold has trapped fuel
 					if (manifold.fuelTrap) {
 						let trapValves = newRotaryValves.filter((valve) => {
 							return manifold.fuelTrap.toString().match(valve.id);
 						});
 
 						fueltrapped = trapValves.every((valve) => {
-							return !valve.open && manifold.fuelPresent;
+							return !valve.open && (manifold.fuelPresent || 
+								(crossfeed_SeparationValve.open && 
+									(crossfeed_left_manifold.fuelPresent || crossfeed_right_manifold.fuelPresent)));
 						});
+
+						manifold.fuelTrapped = fueltrapped;
 					}
 
-					//Show if fuel is trapped or not
-					if (fueltrapped) {
-						fuelpresent = true;
-					} else if (!fueltrapped && allPumpsOff){
-						fuelpresent = false;
+					if (manifold.id === 'crossfeed_line1') {
+						if (fueltrapped) {
+							fuelpresent = true;
+						} else if (!fueltrapped && !crossfeed_line1_pumpfed){
+							fuelpresent = false;
+						}
+					} else if (manifold.id === 'crossfeed_line2') {
+						if (fueltrapped) {
+							fuelpresent = true;
+						} else if (!fueltrapped && !crossfeed_line2_pumpfed){
+							fuelpresent = false;
+						}
 					}
 
 					//Set manifold fuel presence
@@ -2198,35 +2333,7 @@ class App extends React.Component {
 
 					//Determine PSI to be displayed on Pressure Indicator
 					if (manifold.id === 'crossfeed_line2' && manifold.fuelPresent) {
-						//target relevant pumps and valves
-						let left_AUX_Pump = newFuelPumps.find(pump => pump.id === 'pump_left_AUX');
-						let left_EXT_Pumps = newFuelPumps.filter((pump) => {
-							return pump.id.indexOf('left_EXT') > -1;
-						});
-						let left_AUX_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_left_AUX_valve');
-						let left_EXT_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_left_EXT_valve');
-						let left_BypassValve = newRotaryValves.find(valve => valve.id === 'left_bypass_valve');
-
-						let right_AUX_Pump = newFuelPumps.find(pump => pump.id === 'pump_right_AUX');
-						let right_EXT_Pumps = newFuelPumps.filter((pump) => {
-							return pump.id.indexOf('right_EXT') > -1;
-						});
-						let right_AUX_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_right_AUX_valve');
-						let right_EXT_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_right_EXT_valve');
-						let right_BypassValve = newRotaryValves.find(valve => valve.id === 'right_bypass_valve');
-
-						let crossfeed_SeparationValve = newRotaryValves.find(valve => valve.id === 'crossfeed_separation_valve');
-
-						//status of external pumps
-						let left_EXT_Pump_ON = left_EXT_Pumps.some((pump) => {
-							return pump.fuelPresent;
-						});
-						let right_EXT_Pump_ON = right_EXT_Pumps.some((pump) => {
-							return pump.fuelPresent;
-						});
-
-						//determine psi value
-						if ((left_AUX_Pump.fuelPresent && left_AUX_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_AUX_Pump.fuelPresent && left_BypassValve.open && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_EXT_Pump_ON && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_EXT_Pump_ON && left_AUX_CrossfeedValve.open && left_BypassValve.open && crossfeed_SeparationValve.open) || (right_AUX_Pump.fuelPresent && right_AUX_CrossfeedValve.open) || (right_AUX_Pump.fuelPresent && right_BypassValve.open && left_EXT_CrossfeedValve.open) || (right_EXT_Pump_ON && right_EXT_CrossfeedValve.open) || (right_EXT_Pump_ON && right_AUX_CrossfeedValve.open && left_BypassValve.open)) {
+						if ((left_AUX_Pump.fuelPresent && left_AUX_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_AUX_Pump.fuelPresent && left_BypassValve.open && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_EXT_Pump_ON && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_EXT_Pump_ON && left_AUX_CrossfeedValve.open && left_BypassValve.open && crossfeed_SeparationValve.open) || (right_AUX_Pump.fuelPresent && right_AUX_CrossfeedValve.open) || (right_AUX_Pump.fuelPresent && right_BypassValve.open && right_EXT_CrossfeedValve.open) || (right_EXT_Pump_ON && right_EXT_CrossfeedValve.open) || (right_EXT_Pump_ON && right_AUX_CrossfeedValve.open && right_BypassValve.open)) {
 							newSystemPSI= 35;
 						} else {
 							newSystemPSI = 19;
@@ -2250,7 +2357,12 @@ class App extends React.Component {
 					valve.fuelSources.forEach((fuelsource)  => {
 						let manifoldindex = newManifolds.findIndex(manifold => manifold.id === fuelsource);
 
-						if (newManifolds[manifoldindex].fuelPresent) {
+						if (
+							(valve.id === "crossfeed_separation_valve" && newManifolds[manifoldindex].fuelPresent) || 
+							(fuelsource.indexOf('crossfeed_line1') > -1 && crossfeed_line1_pumpfed) || 
+							(fuelsource.indexOf('crossfeed_line2') > -1 && crossfeed_line2_pumpfed) ||
+							(fuelsource.indexOf('crossfeed') < 0 && newManifolds[manifoldindex].fuelPresent)
+						) {
 							fuelpresent = true;
 						}
 
@@ -4269,6 +4381,7 @@ class App extends React.Component {
 							fuelPresent={pump.fuelPresent}
 							failed={pump.failed}
 							onFailEvent={this.handleFailEvent}
+							emptyLightStatus={pump.emptyLightStatus}
 						/>
 					)}
 
@@ -4296,22 +4409,6 @@ class App extends React.Component {
 					<g id="unanimated_springValves">
 						<path d="M111.71,213.42h-6.06c-.71-.93-1.81-1.12-1.81-2.39h0c0-1.25,1.1-1.45,1.81-2.39h6.06c1,0,1.8-3.55,1.8,2.39h0C113.51,216.64,112.7,213.42,111.71,213.42Z" transform="translate(-4.51 -14.6)" fill="#949494"/>
 						<path d="M627,208.51H633c.7.93,1.8,1.12,1.8,2.39h0c0,1.25-1.1,1.46-1.8,2.39H627c-1,0-1.8,3.55-1.8-2.39h0C625.15,205.29,626,208.51,627,208.51Z" transform="translate(-4.51 -14.6)" fill="#949494"/>
-						<g id="springVal_back">
-						<rect x="283.46" y="215.26" width="7.03" height="16.1" rx="1.79" fill="#fff"/>
-						<path d="M293.21,230.24a1.41,1.41,0,0,1,1.41,1.41v12.53a1.41,1.41,0,0,1-1.41,1.41h-3.46a1.42,1.42,0,0,1-1.41-1.41V231.65a1.41,1.41,0,0,1,1.41-1.41h3.46m0-.75h-3.46a2.16,2.16,0,0,0-2.16,2.16v12.53a2.16,2.16,0,0,0,2.16,2.16h3.46a2.16,2.16,0,0,0,2.16-2.16V231.65a2.16,2.16,0,0,0-2.16-2.16Z" transform="translate(-4.51 -14.6)" fill="#666"/>
-						</g>
-						<g id="springVal">
-						<circle cx="286.97" cy="227.78" r="2.76" fill="#666"/>
-						<path d="M292.52,240.07s-3.71-.3-3.53-1.27c.29-1.63,4.36-1.53,4.36-1.53s-5,.64-4.39-.79c.52-1.14,4.39-1.35,4.39-1.35s-5.19.59-4.47-.88,4.71-1.35,4.71-1.35-5.79.4-4.48-1.13c.86-1,4.48-1.17,4.48-1.17" transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
-						</g>
-						<g id="springVal_back-2">
-						<rect x="435.3" y="215.26" width="7.03" height="16.1" rx="1.79" fill="#fff"/>
-						<path d="M445.05,230.24a1.42,1.42,0,0,1,1.42,1.41v12.53a1.42,1.42,0,0,1-1.42,1.41H441.6a1.41,1.41,0,0,1-1.41-1.41V231.65a1.41,1.41,0,0,1,1.41-1.41h3.45m0-.75H441.6a2.16,2.16,0,0,0-2.16,2.16v12.53a2.16,2.16,0,0,0,2.16,2.16h3.45a2.17,2.17,0,0,0,2.17-2.16V231.65a2.16,2.16,0,0,0-2.17-2.16Z" transform="translate(-4.51 -14.6)" fill="#666"/>
-						</g>
-						<g id="springVal-2">
-						<circle cx="438.81" cy="227.78" r="2.76" fill="#666"/>
-						<path d="M444.36,240.07s-3.7-.3-3.53-1.27c.3-1.63,4.36-1.53,4.36-1.53s-5,.64-4.38-.79c.52-1.14,4.38-1.35,4.38-1.35s-5.19.59-4.47-.88,4.71-1.35,4.71-1.35-5.78.4-4.48-1.13c.87-1,4.48-1.17,4.48-1.17" transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
-						</g>
 						<g id="springVal_back-3">
 						<rect x="490.76" y="190.69" width="7.03" height="16.1" rx="1.79" fill="#fff"/>
 						<path d="M500.51,205.66a1.41,1.41,0,0,1,1.41,1.41V219.6a1.41,1.41,0,0,1-1.41,1.41h-3.46a1.41,1.41,0,0,1-1.41-1.41V207.07a1.42,1.42,0,0,1,1.41-1.41h3.46m0-.75h-3.46a2.16,2.16,0,0,0-2.16,2.16V219.6a2.16,2.16,0,0,0,2.16,2.16h3.46a2.16,2.16,0,0,0,2.16-2.16V207.07a2.16,2.16,0,0,0-2.16-2.16Z" transform="translate(-4.51 -14.6)" fill="#666"/>

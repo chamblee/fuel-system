@@ -4,7 +4,7 @@
   "description": "Training app which simulates the fuel system interface in an L-382 aircraft",
   "author": "Shane Chamblee <shanechamblee@gmail.com>",
   "private": true,
-  "homepage": "https://chamblee.github.io/fuelsystem",
+  "homepage": "https://chamblee.github.io/fuel-system",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
