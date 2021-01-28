@@ -304,7 +304,7 @@ class FuelPump extends React.Component {
 			if (this.props.emptyLightStatus === 'flash') {
 				this.light_tl.play();
 			}
-		} else if (!this.props.fuelPresent) {
+		} else {
 			this.tl.pause();
 			this.light_tl.pause(0);
 		}
@@ -530,6 +530,7 @@ class QuantityIndicator extends React.Component {
 		TweenMax.set(this.indicatorTestButton, {transformOrigin: '50% 50%'}); // eslint-disable-line
 
 		this.tl_indicatorTest.to(this.indicatorNeedle, {rotate: 0, duration: 3})
+		.to("#total_quan_needle", {rotate: '-=15', duration: 3}, '-=3')
 		.to(this.indicatorTestButton, {scale: 0.95, duration: 0.5}, '-=3');
 	}
 
@@ -775,14 +776,14 @@ class App extends React.Component {
 					id: "left_AUX_line2",
 					points: "263.97 199.04 266.96 199.04 266.96 173 271.48 173 271.48 169.87 266.84 169.87 266.84 155.32 272.45 155.32 272.45 152.06 266.9 152.06 266.9 137.57 275.32 137.57 275.32 134.29 266.83 134.29 266.83 120.74 263.85 120.74 263.97 199.04",
 					fuelPresent: false,
-					fuelSources: ["pump_left_AUX","left_bypass_valve"],
+					fuelSources: ["pump_left_AUX","left_bypass_valve","crossfeed_left_AUX_valve"],
 					connectedPressureSwitch: "left_AUX_line_pressureSwitch"
 				},
 				{
 					id: "left_EXT_main_line",
 					points: "160.32 261.68 172.24 261.68 172.24 241.6 278.83 241.6 278.83 217.58 276.71 217.58 276.71 214.39 278.77 214.37 278.7 211.39 285.29 211.39 285.29 137.68 279.14 137.68 279.14 134.55 285.29 134.55 285.29 120.66 288.21 120.66 288.21 124.66 298.47 124.66 298.47 127.78 288.21 127.78 288.21 218.77 285.35 218.77 285.35 214.65 281.69 214.65 281.69 244.69 175.08 244.69 175.08 261.57 185.65 261.57 185.65 264.83 175.08 264.83 175.08 269.82 172.16 269.82 172.16 264.76 160.35 264.76 160.32 261.68",
 					fuelPresent: false,
-					fuelSources: ["pump_left_EXT_FWD", "pump_left_EXT_AFT","left_bypass_valve", "left_refuel_manifold_springValve"],
+					fuelSources: ["pump_left_EXT_FWD", "pump_left_EXT_AFT","left_bypass_valve", "left_refuel_manifold_springValve","crossfeed_left_EXT_valve"],
 					connectedPressureSwitch: "left_EXT_main_pressureSwitch"
 				},
 				{
@@ -807,14 +808,14 @@ class App extends React.Component {
 					id: "right_AUX_line2",
 					points: "455.3 169.98 455.3 173.17 459.76 173.17 459.76 198.74 462.74 198.74 462.74 121.55 459.58 121.55 459.58 134.61 453.75 134.61 453.75 137.81 459.64 137.81 459.64 152.29 455.05 152.29 455.05 155.56 459.76 155.56 459.76 170.05 455.3 169.98",
 					fuelPresent: false,
-					fuelSources: ["pump_right_AUX","right_bypass_valve"],
+					fuelSources: ["pump_right_AUX","right_bypass_valve","crossfeed_right_AUX_valve"],
 					connectedPressureSwitch: "right_AUX_line_pressureSwitch"
 				},
 				{
 					id: "right_EXT_main_line",
 					points: "542 264.68 542 261.48 551.93 261.48 551.93 244.71 443.92 244.71 443.92 214.69 440.3 214.69 440.3 217.62 437.37 217.62 437.37 127.71 426.42 127.71 426.42 124.44 437.43 124.44 437.43 120.19 440.42 120.19 440.42 134.63 447.64 134.63 447.64 137.89 440.36 137.89 440.36 211.5 450.19 211.5 450.19 214.76 446.83 214.76 446.83 241.58 554.94 241.58 554.94 261.55 565.21 261.55 565.21 264.81 554.88 264.81 554.88 270.4 551.89 270.4 551.89 264.81 542 264.68",
 					fuelPresent: false,
-					fuelSources: ["pump_right_EXT_FWD", "pump_right_EXT_AFT","right_bypass_valve", "right_refuel_manifold_springValve"],
+					fuelSources: ["pump_right_EXT_FWD", "pump_right_EXT_AFT","right_bypass_valve", "right_refuel_manifold_springValve","crossfeed_right_EXT_valve"],
 					connectedPressureSwitch: "right_EXT_main_pressureSwitch"
 				},
 				{
@@ -1140,7 +1141,7 @@ class App extends React.Component {
 					id: "crossfeed_left_AUX_valve",
 					open: false,
 					failed: false,
-					fuelSources: ["left_AUX_line2"],
+					fuelSources: ["left_AUX_line2","crossfeed_line1"],
 					fuelPresent: false,
 					path_1_d: "M268.67,126.3a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,0,1,0-10.6Z",
 					path_2_d: "M263.74,136.54a7,7,0,1,0,0-9.87A7,7,0,0,0,263.74,136.54Zm9.1-.77a5.87,5.87,0,0,1-4.17,1.72,5.78,5.78,0,0,1-3.29-1l8.17-8.17a5.78,5.78,0,0,1,1,3.29A5.85,5.85,0,0,1,272.84,135.77Zm-8.33-8.33a5.89,5.89,0,0,1,7.46-.71l-8.17,8.17A5.89,5.89,0,0,1,264.51,127.44Z",
@@ -1153,7 +1154,7 @@ class App extends React.Component {
 					id: "crossfeed_left_EXT_valve",
 					open: false,
 					failed: false,
-					fuelSources: ["left_EXT_main_line"],
+					fuelSources: ["left_EXT_main_line","crossfeed_line1"],
 					fuelPresent: false,
 					path_1_d: "M291.2,126.3a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,0,1,0-10.6Z",
 					path_2_d: "M286.26,136.54a7,7,0,1,0,0-9.87A7,7,0,0,0,286.26,136.54Zm9.1-.77a5.89,5.89,0,0,1-7.46.71l8.18-8.17a5.91,5.91,0,0,1-.72,7.46ZM287,127.44a5.91,5.91,0,0,1,7.47-.71l-8.18,8.17A5.9,5.9,0,0,1,287,127.44Z",
@@ -1166,7 +1167,7 @@ class App extends React.Component {
 					id: "crossfeed_right_EXT_valve",
 					open: false,
 					failed: false,
-					fuelSources: ["right_EXT_main_line"],
+					fuelSources: ["right_EXT_main_line","crossfeed_line2"],
 					fuelPresent: false,
 					path_1_d: "M443.25,126.3a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,1,1,0-10.6Z",
 					path_2_d: "M438.31,136.54a7,7,0,1,0,0-9.87A7,7,0,0,0,438.31,136.54Zm9.1-.77a5.89,5.89,0,0,1-7.46.71l8.17-8.17a5.78,5.78,0,0,1,1,3.29A5.85,5.85,0,0,1,447.41,135.77Zm-8.33-8.33a5.87,5.87,0,0,1,4.17-1.72,5.78,5.78,0,0,1,3.29,1l-8.17,8.17A5.9,5.9,0,0,1,439.08,127.44Z",
@@ -1179,7 +1180,7 @@ class App extends React.Component {
 					id: "crossfeed_right_AUX_valve",
 					open: false,
 					failed: false,
-					fuelSources: ["right_AUX_line2"],
+					fuelSources: ["right_AUX_line2","crossfeed_line2"],
 					fuelPresent: false,
 					path_1_d: "M465.77,126.3a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,1,1,0-10.6Z",
 					path_2_d: "M460.84,136.54a7,7,0,1,0,0-9.87A6.94,6.94,0,0,0,460.84,136.54Zm9.09-.77a5.89,5.89,0,0,1-7.46.71l8.18-8.17a5.88,5.88,0,0,1-.72,7.46Zm-8.32-8.33a5.89,5.89,0,0,1,7.46-.71l-8.18,8.17A5.89,5.89,0,0,1,461.61,127.44Z",
@@ -1446,6 +1447,7 @@ class App extends React.Component {
 				{
 					id: "pump_1_boost",
 					connectedSpringValve: "tank_1_boost_springValve",
+					connectedToggleSwitch: "tank_1_boostSwitch",
 					transform: "translate(0,0)",
 					open: true,
 					fuelPresent: false,
@@ -1454,6 +1456,7 @@ class App extends React.Component {
 				{
 					id: "pump_1_dump",
 					connectedSpringValve: "tank_1_dump_springValve",
+					connectedToggleSwitch: "tank_1_dumpSwitch",
 					transform: "translate(-113, -5)",
 					open: true,
 					fuelPresent: false,
@@ -1462,6 +1465,7 @@ class App extends React.Component {
 				{
 					id: "pump_2_boost",
 					connectedSpringValve: "tank_2_boost_springValve",
+					connectedToggleSwitch: "tank_2_boostSwitch",
 					transform: "translate(91, 12)",
 					open: true,
 					fuelPresent: false,
@@ -1470,6 +1474,7 @@ class App extends React.Component {
 				{
 					id: "pump_2_dump",
 					connectedSpringValve: "tank_2_dump_springValve",
+					connectedToggleSwitch: "tank_2_dumpSwitch",
 					transform: "translate(45, 8)",
 					fuelPresent: false,
 					failed: false
@@ -1478,12 +1483,14 @@ class App extends React.Component {
 					id: "pump_3_boost",
 					transform: "translate(316, 12)",
 					connectedSpringValve: "tank_3_boost_springValve",
+					connectedToggleSwitch: "tank_3_boostSwitch",
 					fuelPresent: false,
 					failed: false
 				},
 				{
 					id: "pump_3_dump",
 					connectedSpringValve: "tank_3_dump_springValve",
+					connectedToggleSwitch: "tank_3_dumpSwitch",
 					transform: "translate(361, 8)",
 					fuelPresent: false,
 					failed: false
@@ -1492,12 +1499,14 @@ class App extends React.Component {
 					id: "pump_4_boost",
 					transform: "translate(410, 2)",
 					connectedSpringValve: "tank_4_boost_springValve",
+					connectedToggleSwitch: "tank_4_boostSwitch",
 					fuelPresent: false,
 					failed: false
 				},
 				{
 					id: "pump_4_dump",
 					connectedSpringValve: "tank_4_dump_springValve",
+					connectedToggleSwitch: "tank_4_dumpSwitch",
 					transform: "translate(522, -3)",
 					fuelPresent: false,
 					failed: false
@@ -1506,6 +1515,7 @@ class App extends React.Component {
 					id: "pump_left_AUX",
 					transform: "translate(145, 2)",
 					connectedSpringValve: "left_AUX_springValve",
+					connectedToggleSwitch: "left_AUX_boostSwitch",
 					fuelPresent: false,
 					failed: false,
 					emptyLightStatus: 'flash'
@@ -1514,6 +1524,7 @@ class App extends React.Component {
 					id: "pump_left_EXT_FWD",
 					transform: "translate(52, 110)",
 					connectedSpringValve: "left_EXT_FWD_springValve",
+					connectedToggleSwitch: "left_EXT_FWD_boostSwitch",
 					fuelPresent: false,
 					emptyLightStatus: 'flash'
 				},
@@ -1521,6 +1532,7 @@ class App extends React.Component {
 					id: "pump_left_EXT_AFT",
 					transform: "translate(-27, 110)",
 					connectedSpringValve: "left_EXT_AFT_springValve",
+					connectedToggleSwitch: "left_EXT_AFT_boostSwitch",
 					fuelPresent: false,
 					failed: false,
 					emptyLightStatus: 'flash'
@@ -1529,6 +1541,7 @@ class App extends React.Component {
 					id: "pump_right_AUX",
 					transform: "translate(262, 2)",
 					connectedSpringValve: "right_AUX_springValve",
+					connectedToggleSwitch: "right_AUX_boostSwitch",
 					fuelPresent: false,
 					failed: false,
 					emptyLightStatus: 'flash'
@@ -1537,6 +1550,7 @@ class App extends React.Component {
 					id: "pump_right_EXT_FWD",
 					transform: "translate(365, 110)",
 					connectedSpringValve: "right_EXT_FWD_springValve",
+					connectedToggleSwitch: "right_EXT_FWD_boostSwitch",
 					fuelPresent: false,
 					failed: false,
 					emptyLightStatus: 'flash'
@@ -1545,6 +1559,7 @@ class App extends React.Component {
 					id: "pump_right_EXT_AFT",
 					transform: "translate(425, 110)",
 					connectedSpringValve: "right_EXT_AFT_springValve",
+					connectedToggleSwitch: "right_EXT_AFT_boostSwitch",
 					fuelPresent: false,
 					failed: false,
 					emptyLightStatus: 'flash'
@@ -1889,10 +1904,23 @@ class App extends React.Component {
 	handleFailEvent = (id, itemType) => {
 		let newFuelPumps = [...this.state.fuelPumps];
 		let newRotaryValves = [...this.state.rotaryValves];
+		let newSpringValves = [...this.state.springValves];
+		let newToggleSwitches = [...this.state.toggleSwitches];
 		let stateTest = this.state.stateTestVal;
 		if (itemType === "fuelPumps") {
 			const fuelPumpIndex = this.state.fuelPumps.findIndex(fuelPump => fuelPump.id === id);
+			let springValveIndex = newSpringValves.findIndex(valve => valve.id === newFuelPumps[fuelPumpIndex].connectedSpringValve);
+			let toggleSwitchIndex = newToggleSwitches.findIndex(sw => sw.id === newFuelPumps[fuelPumpIndex].connectedToggleSwitch);
 			newFuelPumps[fuelPumpIndex] = {...newFuelPumps[fuelPumpIndex], failed: !newFuelPumps[fuelPumpIndex].failed};
+			if (newFuelPumps[fuelPumpIndex].failed) {
+				newFuelPumps[fuelPumpIndex].fuelPresent = false;
+				newSpringValves[springValveIndex].fuelPresent = false;
+			} else {
+				if (newToggleSwitches[toggleSwitchIndex].switchedOn) {
+					newFuelPumps[fuelPumpIndex].fuelPresent = true;
+					newSpringValves[springValveIndex].fuelPresent = true;
+				}
+			}
 		} else if (itemType === "rotaryValves") {
 			const rotaryValveIndex = this.state.rotaryValves.findIndex(valve => valve.id === id);
 			newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], failed: !newRotaryValves[rotaryValveIndex].failed};
@@ -1902,6 +1930,7 @@ class App extends React.Component {
 			return {
 				fuelPumps: newFuelPumps,
 				rotaryValves: newRotaryValves,
+				springValves: newSpringValves,
 				stateTestVal: stateTest + 1
 			};
 		});
