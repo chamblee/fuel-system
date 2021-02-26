@@ -3,8 +3,9 @@
 Simulates the interface and behavior of an aircraft fuel system/control panel.
 
 #
+This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app)
 
-Built with the GSAP library and React.
+Animated using [GSAP](https://greensock.com/gsap/)
 
 #
 
