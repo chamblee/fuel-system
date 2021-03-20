@@ -1230,9 +1230,10 @@
 		pointer-events: none;
 	}
 
-	/* Container / SVG */
+	/* SVG container size */
+
 	#root svg {
-		max-height: 100vh;
+		max-height: 110vh;
 	}
 
 	/* Controls */

@@ -1,612 +1,13 @@
 import React from 'react';
 import './fuel_system_app.css';
-
-/* 
-----------------------------------------------------------------
-Fuel System Components
-----------------------------------------------------------------
-*/
-class Manifold extends React.Component {
-    constructor(props) {
-        super(props);
-        this.pressureNeedle = null;
-        this.pressureChange = false;
-        this.fluxChange = false;
-    }
-
-    initialize_indicator_timeline() {
-        let currentNeedleRotation = gsap.getProperty(this.pressureNeedle, "rotation"); // eslint-disable-line
-        let pressNeedleRotation = this.props.psi === 35 ? 220 : this.props.psi === 19 ? 120 : 0;
-        let rotationDuration = Math.floor(Math.abs(currentNeedleRotation - pressNeedleRotation) / 30);
-        
-        this.tl_pressNeedleMove = new TimelineMax({paused: true, onComplete: () => { // eslint-disable-line
-            this.end_tl();
-        }});
-        this.tl_pressNeedleMove.addLabel('startFlux')
-        .to(this.pressureNeedle, {rotation: "-=15", duration: 1.5,ease: "Sine.easeOut"})
-        .to(this.pressureNeedle, {rotation: "+=15", duration: .8,ease: "Sine.easeOut"})
-        .addLabel('endFlux')
-        .addLabel('startPressureChange')
-        .to(this.pressureNeedle, {rotation: pressNeedleRotation, duration: rotationDuration,ease: "power2.inOut"})
-        .addLabel('endPressureChange');
-    }
-
-    initialize_fueldump_timeline() {
-        this.tl_fuelSpray = new TimelineMax(); // eslint-disable-line
-        this.tl_fuelSpray.to(".sprayLine", {strokeDashoffset: -15, duration: 3, repeat: -1, ease: "Sine.easeInOut"});
-    }
-
-    end_tl() {
-        this.tl_pressNeedleMove.kill();
-    }
-
-    componentDidMount() {
-        if (this.props.id === 'crossfeed_line2') {
-            TweenMax.set(this.pressureNeedle, {transformOrigin: '18.35% 25.02%'}); // eslint-disable-line
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.id === 'crossfeed_line2') {
-            this.pressureChange = this.props.psi !== prevProps.psi;
-            this.fluxChange = this.props.psiFluxCounter !== prevProps.psiFluxCounter;
-            
-            if (this.pressureChange) {
-                console.log('press change');
-            }
-
-            if (this.fluxChange) {
-                console.log('flux change');
-            }
-
-            this.initialize_indicator_timeline();
-
-            if (this.fluxChange && this.pressureChange) {
-                this.tl_pressNeedleMove.play();
-            } else if (this.fluxChange) {
-                this.tl_pressNeedleMove.tweenFromTo("startFlux", "endFlux");
-            } else if (this.pressureChange) {
-                this.tl_pressNeedleMove.tweenFromTo("startPressureChange", "endPressureChange");
-            }
-        }
-
-        if (this.props.id === 'left_dump_line' || this.props.id === 'right_dump_line') {
-            this.initialize_fueldump_timeline();
-        }
-    }
-
-    render() {
-        let renderPressureTransmitter = () => {
-            if (this.props.id === 'crossfeed_line2') {
-              return <g id="pressureXmtr">
-                    <circle cx="449.95" cy="77.62" r="6.15" fill={this.props.fuelPresent ? '#00ff05' : 'none'} stroke="#666" strokeMiterlimit="10"/>
-                    <polygon points="449.81 75.28 449.1 78.72 450.51 78.72 449.81 75.28" fill="#666"/>
-                    <path d="M452.17,89.25c.26.22,0,1-.42,1.52s-1.05,1-1.31.83,0-1.12.49-1.64S451.91,89,452.17,89.25Z" transform="translate(-4.51 -14.6)" fill="#666"/>
-                    <line x1="449.95" y1="83.77" x2="449.95" y2="86.24" fill="none" stroke="#666" strokeMiterlimit="10"/>
-                    <rect x="443.54" y="85.41" width="13.03" height="13.03" rx="4" fill="#666" stroke={this.props.fuelPresent ? '#00ff05' : '#fff'} strokeMiterlimit="10" strokeWidth="0.5"/>
-                    <line x1="445.82" y1="87.2" x2="449.71" y2="87.2" fill="none" stroke={this.props.fuelPresent ? '#00ff05' : '#ccc'} strokeLinecap="round" strokeMiterlimit="10"/>
-                    <line x1="457.1" y1="88.68" x2="457.1" y2="95.91" fill="none" stroke="gray" strokeLinecap="round" strokeMiterlimit="10"/>
-                    <line x1="442.89" y1="88.68" x2="442.89" y2="95.91" fill="none" stroke="gray" strokeLinecap="round" strokeMiterlimit="10"/>
-                    <g id="pressure_indicator">
-                        <g id="pressure_indicator_back">
-                            <path d="M368.91,422.74a24,24,0,1,1-24,24.05,24.05,24.05,0,0,1,24-24.05Zm0,21.93a2.11,2.11,0,1,1,0,4.21,2.11,2.11,0,0,1,0-4.21Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-9)"/>
-                            <path d="M368.91,424.34a22.43,22.43,0,1,1-22.42,22.45,22.45,22.45,0,0,1,22.42-22.45Zm0,20.47a2,2,0,1,1,0,3.93,2,2,0,0,1,0-3.93Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-10)"/>
-                            <path d="M368.75,425a21.66,21.66,0,1,1-21.64,21.67A21.68,21.68,0,0,1,368.75,425Zm0,19.76a1.9,1.9,0,1,1,0,3.8,1.9,1.9,0,0,1,0-3.8Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#242424" strokeMiterlimit="10" strokeWidth="0.5" fillRule="evenodd"/>
-                        </g>
-                        <g id="pressure_indicator_nos">
-                            <text transform="translate(378.5 439.27)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">0</text>
-                            <text transform="translate(363.97 448.46)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700"><tspan letterSpacing="0.04em">1</tspan><tspan x="2.29" y="0">0</tspan></text>
-                            <text transform="translate(350.97 441.57)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700"><tspan letterSpacing="0.04em">2</tspan><tspan x="2.29" y="0">0</tspan></text>
-                            <text transform="translate(350.21 426.26)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700"><tspan letterSpacing="0.04em">3</tspan><tspan x="2.29" y="0">0</tspan></text>
-                            <text transform="translate(364.74 418.6)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700"><tspan letterSpacing="0.04em">4</tspan><tspan x="2.29" y="0">0</tspan></text>
-                            <text transform="translate(376.21 428.56)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700"><tspan letterSpacing="0.04em">5</tspan><tspan x="2.29" y="0">0</tspan></text>
-                            <text transform="translate(360.91 422.43)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700"><tspan letterSpacing="-0.11em">F</tspan><tspan x="1.53" y="0" letterSpacing="0.03em">U</tspan><tspan x="3.83" y="0" letterSpacing="0.08em">E</tspan><tspan x="6.12" y="0">L</tspan></text>
-                            <text transform="translate(357.09 427.03)" fontSize="4.59" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">P<tspan x="3.06" y="0" letterSpacing="-0.05em">R</tspan><tspan x="6.13" y="0">ESS</tspan></text>
-                            <text transform="translate(360.91 440.81)" fontSize="4.59" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PSI</text>
-                        </g>
-                        <g id="pressure_indicator_marks">
-                            <line x1="381.4" y1="423.8" x2="383.73" y2="422.63" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="380.35" y1="421.95" x2="382.54" y2="420.54" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="379.11" y1="420.25" x2="381.15" y2="418.58" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="377.69" y1="418.67" x2="379.53" y2="416.82" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="374.4" y1="416.09" x2="375.76" y2="413.88" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="372.53" y1="415.07" x2="373.63" y2="412.71" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="370.57" y1="414.27" x2="371.42" y2="411.81" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="368.56" y1="413.71" x2="369.1" y2="411.15" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="364.37" y1="413.25" x2="364.34" y2="410.64" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="362.27" y1="413.39" x2="361.96" y2="410.79" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="360.17" y1="413.73" x2="359.57" y2="411.21" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="358.16" y1="414.33" x2="357.28" y2="411.89" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="354.36" y1="416.17" x2="352.97" y2="413.96" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="352.66" y1="417.39" x2="351.01" y2="415.38" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="351.07" y1="418.81" x2="349.23" y2="416.97" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="349.68" y1="420.37" x2="347.64" y2="418.75" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="347.44" y1="423.94" x2="345.09" y2="422.8" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="346.62" y1="425.89" x2="344.18" y2="425.02" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="346.05" y1="427.91" x2="343.5" y2="427.34" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="345.69" y1="429.98" x2="343.11" y2="429.69" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="345.69" y1="434.2" x2="343.08" y2="434.48" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="346.03" y1="436.27" x2="343.47" y2="436.86" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="346.59" y1="438.31" x2="344.13" y2="439.16" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="347.39" y1="440.27" x2="345.03" y2="441.37" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="349.63" y1="443.84" x2="347.58" y2="445.45" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="351.01" y1="445.42" x2="349.17" y2="447.24" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="352.57" y1="446.84" x2="350.96" y2="448.85" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="354.27" y1="448.06" x2="352.89" y2="450.27" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="358.07" y1="449.93" x2="357.19" y2="452.37" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="360.09" y1="450.53" x2="359.49" y2="453.05" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="362.15" y1="450.9" x2="361.87" y2="453.48" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="364.28" y1="451.04" x2="364.25" y2="453.62" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="368.45" y1="450.58" x2="369.01" y2="453.14" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="370.49" y1="450.05" x2="371.34" y2="452.51" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="372.44" y1="449.25" x2="373.55" y2="451.6" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="374.31" y1="448.26" x2="375.68" y2="450.47" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="377.63" y1="445.68" x2="379.45" y2="447.52" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="379.05" y1="444.12" x2="381.06" y2="445.76" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="380.3" y1="442.42" x2="382.48" y2="443.81" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="381.34" y1="440.58" x2="383.67" y2="441.74" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            <line x1="380.86" y1="438.17" x2="384.58" y2="439.5" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="380.86" y1="426.18" x2="384.58" y2="424.85" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="375.17" y1="418.38" x2="377.6" y2="415.26" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="366.24" y1="414.75" x2="366.63" y2="410.84" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="356.74" y1="416.45" x2="355.01" y2="412.88" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="349.57" y1="422.89" x2="346.2" y2="420.79" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="346.9" y1="432.16" x2="342.94" y2="432.16" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="349.57" y1="441.46" x2="346.2" y2="443.55" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="356.74" y1="447.89" x2="355.01" y2="451.46" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="366.24" y1="449.56" x2="366.63" y2="453.5" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            <line x1="375.17" y1="445.96" x2="377.6" y2="449.08" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                        </g>
-                        <g id="pressure_indicator_screws">
-                            <g>
-                            <polygon points="374.32 430.71 374.91 430.86 374.2 433.46 373.64 433.29 374.32 430.71" fill="#595959" fillRule="evenodd"/>
-                            <path d="M377.61,447.38a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58a1.45,1.45,0,0,1-.54-.51Zm1.82-1.92a2.42,2.42,0,0,1,.28.22,1.4,1.4,0,0,1-.26,2.19,1.35,1.35,0,0,1-.73.19Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                            </g>
-                            <g>
-                            <polygon points="354.52 430.71 355.11 430.86 354.4 433.46 353.84 433.29 354.52 430.71" fill="#595959" fillRule="evenodd"/>
-                            <path d="M357.81,447.38a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58a1.45,1.45,0,0,1-.54-.51Zm1.82-1.92a2.42,2.42,0,0,1,.28.22,1.4,1.4,0,0,1-.26,2.19,1.35,1.35,0,0,1-.73.19Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                            </g>
-                        </g>
-                        <polygon ref={needle => this.pressureNeedle = needle} onClick={this.handleClick} id="pressure_indicator_needle" points="360.25 431.85 361.02 429.78 377.72 435.84 383.33 439.13 376.95 437.91 360.25 431.85" fill="#fff" fillRule="evenodd"/>
-                    </g>
-                  </g>
-            }
-        }
-        
-        let renderDumpSpray = () => {
-            if (this.props.id === 'left_dump_line' && this.props.fuelPresent) {
-                return <g id="left_fuel_spray">
-                            <g>
-                                <line className="sprayLine" x1="14.08" y1="264.6" x2="15.54" y2="277.72" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="3.25"/>
-                                <line className="sprayLine" x1="10.98" y1="264.72" x2="10.98" y2="277.78" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="3.25"/>
-                                <line className="sprayLine" x1="7.93" y1="264.6" x2="6.46" y2="277.72" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="3.25"/>
-                            </g>
-                        </g>
-            } else if (this.props.id === 'right_dump_line' && this.props.fuelPresent) {
-                return <g id="right_fuel_spray">
-                            <g>
-                                <line className="sprayLine" x1="719.46" y1="264.6" x2="720.92" y2="277.72" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="3.25"/>
-                                <line className="sprayLine" x1="716.37" y1="264.72" x2="716.37" y2="277.78" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="3.25"/>
-                                <line className="sprayLine" x1="713.31" y1="264.6" x2="711.84" y2="277.72" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="3.25"/>
-                            </g>
-                        </g>
-            }
-        }
-        return (
-            <g>
-                <polygon className={this.props.classes ? this.props.classes : ''} fill={this.props.fuelPresent ? '#00ff05' : '#e0e0e0'} id={this.props.id} points={this.props.points} onClick={this.handleClick} />
-                {renderPressureTransmitter()}
-                {renderDumpSpray()}
-            </g>
-        );
-    }
-}
-
-class RotaryValve extends React.Component {
-    constructor(props) {
-        super(props);
-        this.el = null;
-        this.tl= new TimelineMax({ paused: true }); // eslint-disable-line
-        this.handleClick = () => {this.props.onFailEvent(this.props.id, "rotaryValves");};
-    }
-
-    componentDidMount() {
-        TweenMax.set(this.el, {transformOrigin: 'center'}); // eslint-disable-line
-        this.tl.to(this.el, 0.5, {rotate: 90});
-    }
-
-    render() {
-        if (this.props.open) {
-            this.tl.play();
-        } else if (!this.props.open) {
-            this.tl.reverse();
-        }
-        
-        return (
-            <g ref={valve => this.el = valve} id= {this.props.id} onClick={this.handleClick}>
-                <path d={this.props.path_1_d} transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#e0e0e0" strokeWidth="0.5" fillRule="evenodd"/>
-                <line x1={this.props.lineX1} y1={this.props.lineY1} x2={this.props.lineX2} y2={this.props.lineY2} fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4"/>
-                <path className="failedIcon" visibility={this.props.failed ? "visible" : "hidden"} d={this.props.path_2_d} transform="translate(-4.51 -14.6)" fill="red"/>
-            </g>
-        );
-    }
-}
-
-class SpringValve extends React.Component {
-    constructor(props) {
-        super(props);
-        this.el = null;
-        this.back = null;
-        this.tl= new TimelineMax({ paused: true }); // eslint-disable-line
-    }
-
-    componentDidMount() {
-        let transform_origin = '50% top';
-        let scaleBy = {scaleY: 0.65};
-        
-        if (this.props.springClasses.indexOf('leftCenter') > -1) {
-            transform_origin = 'right 50%';
-            scaleBy = {scaleX: 0.65};
-        } else if (this.props.springClasses.indexOf('rightCenter') > -1) {
-            transform_origin = 'left 50%';
-            scaleBy = {scaleX: 0.65};
-        } else if (this.props.springClasses.indexOf('bottomCenter') > -1) {
-            transform_origin = '50% bottom';
-        }
-
-        TweenMax.set(this.el, {transformOrigin: transform_origin}); // eslint-disable-line
-        this.tl.to(this.el, 0.25, scaleBy)
-        .to(this.back, 0.25, {fill:'#00ff05'});
-    }
-    
-    render() {
-        if (this.props.fuelPresent) {
-            this.tl.play();
-        } else if (!this.props.fuelPresent) {
-            this.tl.reverse();
-        }
-        
-        return (
-            <g id={this.props.id}>
-                <rect ref={back => this.back = back} x={this.props.rectX} y={this.props.rectY} width={this.props.springClasses.indexOf('horizontal') > -1 ? "16.1" : "7.03"} height={this.props.springClasses.indexOf('horizontal') > -1 ? "7.03" : "16.1"} rx="1.79" stroke="#666" fill="#fff"/>
-                <g ref={spring => this.el = spring} className={this.props.springClasses}>
-                    <circle cx={this.props.circX} cy={this.props.circY} r="2.76" fill="#666"/>
-                    <path d={this.props.pathD} transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
-                </g>
-            </g>
-        );
-    }
-}
-
-class FuelPump extends React.Component {
-    constructor(props) {
-        super(props);
-        this.el = null;
-        this.emptyLight = null;
-        this.tl= new TimelineMax({paused: true}); // eslint-disable-line
-        this.light_tl = new TimelineMax({paused: true}); // eslint-disable-line
-        this.handleClick = () => {this.props.onFailEvent(this.props.id, "fuelPumps");};
-    }
-
-    componentDidMount() {
-        TweenMax.set(this.el, {transformOrigin: 'center'}); // eslint-disable-line
-        this.tl.to(this.el, {rotation:"-360", duration: 2, repeat:-1, ease: "none"});
-
-        if (this.props.id.indexOf('AUX') > -1 || this.props.id.indexOf('EXT') > -1) {
-            this.light_tl.to(this.emptyLight, {autoAlpha:1, duration:0.5})
-            .to(this.emptyLight, {autoAlpha:0, duration:0.75});
-        }
-    }
-
-    render() {
-        if (this.props.fuelPresent) {
-            this.tl.play();
-            if (this.props.emptyLightStatus === 'flash') {
-                this.light_tl.play();
-            }
-        } else {
-            this.tl.pause();
-            this.light_tl.pause(0);
-        }
-
-        let renderTankEmptyLights = () => {
-            if (this.props.id === 'pump_left_AUX') {
-                return <text ref={emptylight => this.emptyLight = emptylight} id="left_aux_empty_light" visibility="hidden" transform="translate(91.5 400.5)" fontSize="3.83" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700"><tspan letterSpacing="0.01em">AUX</tspan><tspan x="-1.01" y="4.59">TANK</tspan><tspan x="-2.06" y="9.18">EMPTY</tspan></text>
-            } else if (this.props.id === 'pump_right_AUX') {
-                return <text ref={emptylight => this.emptyLight = emptylight} id="right_aux_empty_light" visibility="hidden" transform="translate(224 400.5)" fontSize="3.83" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700"><tspan letterSpacing="0.01em">AUX</tspan><tspan x="-1.01" y="4.59">TANK</tspan><tspan x="-2.06" y="9.18">EMPTY</tspan></text>
-            } else if (this.props.id.indexOf('left_EXT') > -1) {
-                return <text ref={emptylight => this.emptyLight = emptylight} id="left_ext_empty_light" visibility="hidden" transform={this.props.id.indexOf('AFT') > -1 ? "translate(345 293)" : "translate(266 293)"} fontSize="3.83" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700">EXT<tspan x="-1.3" y="4.59">TANK</tspan><tspan x="-2.35" y="9.18">EMPTY</tspan></text>
-            } else if (this.props.id.indexOf('right_EXT') > -1) {
-                return <text ref={emptylight => this.emptyLight = emptylight} id="right_ext_empty_light" visibility="hidden" transform={this.props.id.indexOf('AFT') > -1 ? "translate(-19.75 293)" : "translate(40 293)"} fontSize="3.83" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700">EXT<tspan x="-1.3" y="4.59">TANK</tspan><tspan x="-2.35" y="9.18">EMPTY</tspan></text>
-            }
-        }
-        
-        return (
-            <g id={this.props.id} transform={this.props.transform} onClick={this.handleClick}>
-                <rect x="150.87" y="161.77" width="16.92" height="15.82" rx="3.6" fill={this.props.fuelPresent ? "#00ff05" : "#cad0dd"} stroke={this.props.failed ? "#f00" : "#000002"} strokeMiterlimit="2.61" strokeWidth="0.25"/>
-                <circle cx="159.26" cy="169.76" r="1.31" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-
-                <g className="motor" ref={motor => this.el = motor}>
-                    <g>
-                    <path d="M163.74,183V178s2.67.71,3.8,2.31c-1,1.15-2.86,3.14-2.86,3.14A1.11,1.11,0,0,0,163.74,183Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-                    <path d="M163.66,177.94s1.36,0,4,2.4" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.75"/>
-                    </g>
-                    <g>
-                    <path d="M162.82,183.44l-3.58-3.57s2.39-1.39,4.32-1.05c.08,1.54.2,4.24.2,4.24A1.12,1.12,0,0,0,162.82,183.44Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-                    <path d="M159.15,179.9s.94-1,4.51-1.12" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.75"/>
-                    </g>
-                    <g>
-                    <path d="M162.45,184.39h-5.06s.71-2.68,2.31-3.8c1.15,1,3.14,2.86,3.14,2.86A1.11,1.11,0,0,0,162.45,184.39Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-                    <path d="M157.35,184.47s0-1.36,2.4-4" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.75"/>
-                    </g>
-                    <g>
-                    <path d="M162.86,185.31l-3.58,3.58s-1.39-2.39-1.05-4.32l4.24-.2A1.11,1.11,0,0,0,162.86,185.31Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-                    <path d="M159.31,189s-1-.94-1.12-4.51" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.75"/>
-                    </g>
-                    <g>
-                    <path d="M163.8,185.68v5.06s-2.68-.71-3.8-2.31c1-1.15,2.86-3.14,2.86-3.14A1.11,1.11,0,0,0,163.8,185.68Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-                    <path d="M163.88,190.78s-1.36,0-4-2.4" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.75"/>
-                    </g>
-                    <g>
-                    <path d="M164.72,185.27l3.58,3.58s-2.39,1.39-4.32,1.05c-.08-1.54-.2-4.24-.2-4.24A1.11,1.11,0,0,0,164.72,185.27Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-                    <path d="M168.39,188.82s-.94,1-4.51,1.12" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.75"/>
-                    </g>
-                    <g>
-                    <path d="M165.09,184.33h5.06s-.71,2.67-2.31,3.8c-1.15-1-3.14-2.86-3.14-2.86A1.11,1.11,0,0,0,165.09,184.33Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-                    <path d="M170.19,184.25s0,1.36-2.4,4" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.75"/>
-                    </g>
-                    <g>
-                    <path d="M164.68,183.4l3.58-3.57s1.39,2.39,1.05,4.32l-4.24.2A1.13,1.13,0,0,0,164.68,183.4Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.25"/>
-                    <path d="M168.23,179.74s1,.94,1.12,4.51" transform="translate(-4.51 -14.6)" fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="0.75"/>
-                    </g>
-                </g>
-
-                <path className="failedIcon" visibility={this.props.failed ? "visible" : "hidden"} d="M127.62,93.62a7,7,0,1,0,0,9.86A6.93,6.93,0,0,0,127.62,93.62Zm-9.1.77a5.86,5.86,0,0,1,4.17-1.73,5.92,5.92,0,0,1,3.3,1l-8.18,8.18a5.89,5.89,0,0,1,.71-7.46Zm8.33,8.32a5.88,5.88,0,0,1-7.46.72l8.17-8.18A5.89,5.89,0,0,1,126.85,102.71Z" transform="translate(37 71)" fill="red"/>
-
-                {renderTankEmptyLights()}
-            </g>
-        );
-    }
-}
-
-class PressureSwitch extends React.Component {
-    constructor(props) {
-        super(props);
-        this.rod = null;
-        this.spring = null;
-        this.back = null;
-        this.tl= new TimelineMax({ paused: true }); // eslint-disable-line
-    }
-
-    componentDidMount() {
-        this.tl.to(this.back, {fill: '#99ffa8', duration: 0.2}, "+=0.1")
-        .to(this.spring, {scaleX: 1.35, duration: 0.2})
-        .to(this.rod, {x:2, duration: 0.2})
-    }
-    
-    render() {
-        if (this.props.fuelPresent) {
-            this.tl.play();
-        } else if (!this.props.fuelPresent) {
-            this.tl.reverse();
-        }
-        
-        return (
-            <g id={this.props.id} transform={this.props.transform} className="pressureSwitch">
-                <rect ref={back => this.back = back} x="126.52" y="10.74" width="18.04" height="9.77" rx="1.44" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                <g ref={rod => this.rod = rod}>
-                    <line id="barV" x1="139.47" y1="11.68" x2="139.47" y2="19.59" fill="none" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                    <line id="barH" x1="133.61" y1="15.62" x2="138.55" y2="15.62" fill="none" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                </g>
-                <g id="lines" ref={spring => this.spring = spring} stroke="#949494">
-                    <line x1="128.2" y1="12.16" x2="128.2" y2="19.03" fill="none" strokeLinejoin="round"/>
-                    <line x1="129.66" y1="12.16" x2="129.66" y2="19.03" fill="none" strokeLinejoin="round"/>
-                    <line x1="131.07" y1="12.16" x2="131.07" y2="19.03" fill="none" strokeLinejoin="round"/>
-                    <line x1="132.56" y1="12.16" x2="132.56" y2="19.03" fill="none" strokeLinejoin="round"/>
-                </g>
-                <polygon points="136.88 12.66 136.88 11.6 137.8 12.13 138.72 12.66 137.8 13.19 136.88 13.72 136.88 12.66" fill="#949494" fillRule="evenodd"/>
-            </g>
-        );
-    }
-}
-
-class ToggleSwitch extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleClick = () => {this.props.onSwitchEvent(this.props.id);}
-    }
-
-    render() {
-        return (
-            <g id={this.props.id} transform={this.props.transform} onClick={this.handleClick}>
-                <g>
-                    <circle cx="52.43" cy="448.67" r="8.71" fill="url(#radial-gradient-157)"/>
-                    <polygon points="60.34 444.19 52.49 439.66 44.65 444.19 44.65 453.24 52.49 457.77 60.34 453.24 60.34 444.19" fillRule="evenodd" fill="url(#radial-gradient-158)"/>
-                    <circle cx="52.43" cy="448.67" r="7.64" stroke="#5e5e5e" strokeMiterlimit="10" fill="url(#radial-gradient-159)"/>
-                    <circle cx="52.43" cy="448.67" r="6.38" stroke="#5e5e5e" strokeMiterlimit="10" strokeWidth="2" fill="url(#radial-gradient-160)"/>
-                    <circle cx="52.54" cy="448.74" r="4.95" stroke="#a0a0a0" strokeMiterlimit="10" strokeWidth="0.75" fill="url(#radial-gradient-161)"/>
-                    <circle cx="52.63" cy="448.83" r="3.06" fill="#5b5b5b"/>
-                </g>
-                <path className="toggle_switch OFF_position" visibility={this.props.switchedOn ? "hidden" : "visible"} d="M60.9,456.48a3.92,3.92,0,0,0-4-3.83,3.65,3.65,0,0,0-4,3.83c0,3,2.39,6.89,4,6.89C58.81,463.37,60.9,459.44,60.9,456.48Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-162)"/>
-                <path className="toggle_switch ON_position" visibility={this.props.switchedOn ? "visible" : "hidden"} d="M53,469.21a3.93,3.93,0,0,0,4,3.84,3.66,3.66,0,0,0,4-3.84c0-3-2.39-6.89-4-6.89C55.07,462.33,53,466.25,53,469.21Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-163)"/>
-            </g>
-        );
-    }
-}
-
-class RotarySwitch extends React.Component {
-    constructor(props) {
-        super(props);
-        this.el_switch = null;
-        this.el_primerButton = null;
-        this.switchGroup = null; //identify svg group for conditionally setting the switch default/OFF position to vertical
-        this.tl_rotateSwitch= new TimelineMax({ paused: true }); // eslint-disable-line
-        this.handleClick = () => {this.props.onSwitchEvent(this.props.id);};
-        this.primerButtonPressed = () => {this.props.onSwitchEvent(this.props.id);};
-        this.primerButtonReleased = () => {this.props.onSwitchEvent(this.props.id);};
-    }
-
-    componentDidMount() {
-        TweenMax.set(this.el_switch, {transformOrigin: 'center'}); // eslint-disable-line
-        
-        //if switch is a bypass switch then OFF position is vertical
-        if (this.props.id.indexOf('bypass') > -1) {
-            TweenMax.set(this.switchGroup, {transformOrigin: 'center', rotate: 90}); // eslint-disable-line
-        }
-
-        this.tl_rotateSwitch.to(this.el_switch, 0.5, {rotate: 90});
-    }
-
-    render() {
-        if (this.props.switchedOn) {
-            this.tl_rotateSwitch.play();
-        } else if (!this.props.switchedOn) {
-            this.tl_rotateSwitch.reverse();
-        }
-
-        let renderPrimerButton = () => {
-            if (this.props.id === 'crossfeed_primer_button') {
-                return <g id="crossfeed_primer_btn" className="rotary_switch" ref={primerButton => this.el_primerButton = primerButton} onMouseDown={this.primerButtonPressed} onMouseUp={this.primerButtonReleased}>
-                        <path d="M317.74,487.21a9.68,9.68,0,1,0,13.55-2.07,9.66,9.66,0,0,0-13.55,2.07Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-21)"/>
-                        <path id="button" d="M325.54,498.1a5.16,5.16,0,1,0-5.16-5.16,5.19,5.19,0,0,0,5.16,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            }
-        }
-        
-        return (
-            <g>
-                <g ref={rotarySwitch => this.el_switch = rotarySwitch} id={this.props.id} className="rotary_switch" transform={this.props.transform} onClick={this.handleClick} visibility={this.props.id === 'crossfeed_primer_button' ? "hidden" : "visible"}>
-                    <path d="M100.23,502.5a16.6,16.6,0,1,0-16.61,16.59,16.63,16.63,0,0,0,16.61-16.59Z" transform="translate(-4.51 -14.6)" fill="#4d4d4d" stroke="#1c1c1c" strokeLinejoin="round" strokeWidth="0.99" fillRule="evenodd"/>
-                    <g className="switch-group" ref={switchGroup => this.switchGroup = switchGroup}>
-                        <path d="M98.87,505l-14,4.79a5.44,5.44,0,0,1-2.44,0c-5-1.7-10-3.4-14.91-5.13a1,1,0,0,1-.65-.77,9.59,9.59,0,0,1,0-2.78,1,1,0,0,1,.68-.76c5-1.73,10-3.46,14.91-5.22a5.44,5.44,0,0,1,2.44.06q7.44,2.55,14.88,5.16a.9.9,0,0,1,.65.76,9.25,9.25,0,0,1,0,2.78,1.12,1.12,0,0,1-.65.77Z" transform="translate(-4.51 -14.6)" fill="#333" fillRule="evenodd"/>
-                        <path d="M98.87,504.57l-14,4a5.9,5.9,0,0,1-2.44,0c-5-1.42-10-2.87-14.91-4.31a.85.85,0,0,1-.65-.63,6.7,6.7,0,0,1,0-2.32.92.92,0,0,1,.68-.65c5-1.45,10-2.89,14.91-4.37a7.14,7.14,0,0,1,2.44,0l14.88,4.34a.85.85,0,0,1,.65.65,6.46,6.46,0,0,1,0,2.32,1,1,0,0,1-.65.63Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.51"/>
-                        <path d="M100.4,504.4H66.9c-.05-.62-.08-1.27-.08-1.9s0-1.27.08-1.9h33.5a16.46,16.46,0,0,1,0,3.8Z" transform="translate(-4.51 -14.6)" fill="red" stroke="#d1d1d1" strokeMiterlimit="10" strokeWidth="0.5"/>
-                    </g>
-                </g>
-                {renderPrimerButton()}
-            </g>
-        );
-    }
-}
-
-class QuantityIndicator extends React.Component {
-    constructor(props) {
-        super(props);
-        this.indicatorNeedle = null;
-        this.indicatorTestButton = null;
-        this.rotDuration = 2;
-        this.tl_indicatorNeedleMove= new TimelineMax({ paused: false, onComplete: () => { // eslint-disable-line
-            this.end_tl();
-            } 
-        });
-        this.tl_indicatorTest= new TimelineMax({ paused: true, onComplete: () => { // eslint-disable-line
-            console.log('test done');
-            } 
-        });
-        this.indicatorTestRun = () => {
-            console.log('test run');
-            this.tl_indicatorTest.play();
-        }
-        this.indicatorTestStop = () => {
-            this.tl_indicatorTest.pause(0);
-        }
-    }
-
-
-    initializeTimeline() {
-        this.tl_indicatorNeedleMove.to(this.indicatorNeedle, {rotate: this.props.rotationDeg, duration: this.rotDuration.toFixed(2), ease: "none"});
-    }
-
-    end_tl() {
-        this.tl_indicatorNeedleMove.kill();
-    }
-
-    componentDidMount() {
-        gsap.config({ // eslint-disable-line
-            nullTargetWarn: false
-        });
-        
-        TweenMax.set(this.indicatorNeedle, {transformOrigin: '77% 17.6%', rotate: this.props.rotationDeg}); // eslint-disable-line
-        TweenMax.set(this.indicatorTestButton, {transformOrigin: '50% 50%'}); // eslint-disable-line
-
-        this.tl_indicatorTest.to(this.indicatorNeedle, {rotate: 0, duration: 3})
-        .to("#total_quan_needle", {rotate: '-=15', duration: 3}, '-=3')
-        .to(this.indicatorTestButton, {scale: 0.95, duration: 0.5}, '-=3');
-    }
-
-    componentDidUpdate(prevProps) {
-        let currentNeedleRotation = gsap.getProperty(this.el, "rotation"); // eslint-disable-line
-        let quantityChange = Math.abs(this.props.quantity - prevProps.quantity);
-        this.rotDuration = quantityChange / 100;
-        this.initializeTimeline();
-
-        if (this.props.rotationDeg !== currentNeedleRotation) {
-            this.tl_indicatorNeedleMove.play();
-        }
-
-        if (this.props.dumping === 'stop' || this.props.dumping === 'has stopped') {
-            this.tl_indicatorNeedleMove.pause();
-            console.log('stop rot: ', gsap.getProperty(this.indicatorNeedle, "rotation")); // eslint-disable-line
-        }
-
-        if (this.props.dumping === 'stop') {
-            this.props.updateQuantity(this.props.id, gsap.getProperty(this.indicatorNeedle, "rotation")); // eslint-disable-line
-        }
-    }
-
-    render() {
-        let renderIndicatorTestButton = () => {
-            if (this.props.id === 'tank_1_indicator_needle') {
-                return <g id="indicator_test_btn_1" className="test_button" ref={button => this.indicatorTestButton = button} onMouseDown={this.indicatorTestRun} onMouseUp={this.indicatorTestStop}>
-                        <path d="M87.6,402.88a9.67,9.67,0,1,0,13.52-2,9.68,9.68,0,0,0-13.52,2Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-29)"/>
-                        <path d="M95.36,413.79a5.16,5.16,0,1,0-5.13-5.16,5.15,5.15,0,0,0,5.13,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            } else if (this.props.id === 'tank_2_indicator_needle') {
-                return <g id="indicator_test_btn_2" className="test_button" ref={button => this.indicatorTestButton = button} onMouseDown={this.indicatorTestRun} onMouseUp={this.indicatorTestStop}>
-                        <path d="M162.46,402.88a9.68,9.68,0,1,0,13.52-2,9.69,9.69,0,0,0-13.52,2Z" transform="translate(-4.51 -14.6)" fill="url(#radial-gradient-28)"/>
-                        <path id="button-8"  d="M170.26,413.79a5.16,5.16,0,1,0-5.16-5.16,5.15,5.15,0,0,0,5.16,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            } else if (this.props.id === 'tank_3_indicator_needle') {
-                return <g id="indicator_test_btn_3" className="test_button" ref={button => this.indicatorTestButton = button} onMouseDown={this.indicatorTestRun} onMouseUp={this.indicatorTestStop}>
-                        <path d="M560.25,402.55a9.68,9.68,0,1,0,13.55-2,9.68,9.68,0,0,0-13.55,2Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-23)"/>
-                        <path id="button-3"  d="M568,413.44a5.15,5.15,0,1,0-5.13-5.16,5.16,5.16,0,0,0,5.13,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            } else if (this.props.id === 'tank_4_indicator_needle') {
-                return <g id="indicator_test_btn_4" className="test_button" ref={button => this.indicatorTestButton = button} onMouseDown={this.indicatorTestRun} onMouseUp={this.indicatorTestStop}>
-                        <path d="M634.53,402.75a9.68,9.68,0,1,0,13.55-2,9.68,9.68,0,0,0-13.55,2Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-22)"/>
-                        <path id="button-2"  d="M642.33,413.64a5.15,5.15,0,1,0-5.13-5.16,5.17,5.17,0,0,0,5.13,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            } else if (this.props.id === 'left_AUX_indicator_needle') {
-                return <g id="indicator_test_btn_aux_left" className="test_button" ref={button => this.indicatorTestButton = button} onMouseDown={this.indicatorTestRun} onMouseUp={this.indicatorTestStop}>
-                        <path d="M236.08,390.63a9.68,9.68,0,1,0,13.55-2,9.69,9.69,0,0,0-13.55,2Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-27)"/>
-                        <path id="button-7"  d="M243.87,401.52a5.15,5.15,0,1,0-5.13-5.16,5.16,5.16,0,0,0,5.13,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            } else if (this.props.id === 'left_EXT_indicator_needle') {
-                return <g id="indicator_test_btn_ext_left" className="test_button" ref={button => this.indicatorTestButton = button} onMouseDown={this.indicatorTestRun} onMouseUp={this.indicatorTestStop}>
-                        <path d="M317.74,390.63a9.68,9.68,0,1,0,13.55-2,9.67,9.67,0,0,0-13.55,2Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-26)"/>
-                        <path id="button-6"  d="M325.54,401.52a5.15,5.15,0,1,0-5.16-5.16,5.17,5.17,0,0,0,5.16,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            } else if (this.props.id === 'right_AUX_indicator_needle') {
-                return <g id="indicator_test_btn_aux_right" className="test_button" ref={button => this.indicatorTestButton = button} onMouseDown={this.indicatorTestRun} onMouseUp={this.indicatorTestStop}>
-                        <path d="M486.15,390.63a9.68,9.68,0,1,0,13.55-2,9.69,9.69,0,0,0-13.55,2Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-24)"/>
-                        <path id="button-4"  d="M493.94,401.52a5.15,5.15,0,1,0-5.13-5.16,5.16,5.16,0,0,0,5.13,5.16Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            } else if (this.props.id === 'right_EXT_indicator_needle') {
-                return <g id="indicator_test_btn_ext_right" className="test_button" ref={button => this.indicatorTestButton = button} onMouseDown={this.indicatorTestRun} onMouseUp={this.indicatorTestStop}>
-                        <path d="M404.51,390.63a9.67,9.67,0,1,0,13.52-2,9.67,9.67,0,0,0-13.52,2Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-25)"/>
-                        <path id="button-5"  d="M412.31,402.09a5.73,5.73,0,1,0-5.73-5.73,5.71,5.71,0,0,0,5.73,5.73Z" transform="translate(-4.51 -14.6)" fill="#333" stroke="#666" strokeMiterlimit="10" strokeWidth="0.77" fillRule="evenodd"/>
-                        </g>
-            }
-        }
-
-        return (
-            <g>
-            <polygon ref={needle => this.indicatorNeedle = needle} id={this.props.id} points={this.props.points} onClick={this.handleClick} fill="#fff" fillRule="evenodd"/>
-            {renderIndicatorTestButton()}
-            </g>
-        );
-    }
-}
+import Manifold from './Manifold'
+import RotaryValve from './RotaryValve'
+import SpringValve from './SpringValve'
+import FuelPump from './FuelPump'
+import PressureSwitch from './PressureSwitch'
+import ToggleSwitch from './ToggleSwitch'
+import RotarySwitch from './RotarySwitch'
+import QuantityIndicator from './QuantityIndicator'
 
 /* 
 ----------------------------------------------------------------
@@ -617,81 +18,6 @@ Parent/App Component
 class App extends React.Component {
     state = {
         manifolds: [
-                {
-                    id: "tank_1_boost_line1",
-                    points: "156.94 174.63 156.94 171.51 119.67 171.51 119.67 140.73 160.71 140.73 160.71 152.81 163.74 152.81 163.74 137.49 119.61 137.49 119.61 128.84 116.58 128.84 116.58 174.7 156.94 174.63",
-                    fuelPresent: false,
-                    fuelSources: ["pump_1_boost"]
-                },
-                {
-                    id: "tank_1_boost_line2",
-                    points: "116.77 118.46 119.67 118.46 119.67 108.35 133.15 108.35 133.15 105.31 119.61 105.31 119.61 89.25 116.64 89.25 116.77 118.46",
-                    fuelPresent: false,
-                    fuelSources: ["pump_1_boost", "crossfeed_1_valve"],
-                    connectedPressureSwitch: ""
-                },
-                {
-                    id: "tank_1_boost_line3",
-                    points: "88.23 17.73 88.33 22.11 91.27 22.11 91.27 17.75 91.27 16.96 116.67 16.95 116.67 19.09 116.74 81.26 119.67 81.26 119.67 19.09 119.67 19.09 119.67 16.93 138.5 16.91 138.5 16.91 138.5 13.97 68.89 13.97 68.89 16.97 88.23 16.96 88.23 17.73",
-                    fuelPresent: false,
-                    fuelSources: ["engine_1_valve"],
-                    connectedPressureSwitch: "engine_1_pressureSwitch"
-                },
-                {
-                    id: "tank_1_boost_line4",
-                    points: "88.52 45.12 91.45 45.12 91.45 37.36 88.45 37.36 88.52 45.12",
-                    fuelPresent: false,
-                    fuelSources: []
-                },
-                {
-                    id: "tank_1_dump_line1",
-                    points: "44.55 173.32 47.36 173.32 47.36 184.86 44.67 184.86 44.55 173.32",
-                    fuelPresent: false,
-                    fuelSources: ["pump_1_dump"]
-                },
-                {
-                    id: "tank_1_dump_line2",
-                    points: "44.55 193.91 47.36 193.91 47.36 208.35 44.67 208.35 44.55 193.91",
-                    fuelPresent: false,
-                    fuelSources: ["pump_1_dump"]
-                },
-                {
-                    id: "tank_2_boost_line1",
-                    points: "271.69 186.38 271.69 182.98 234.9 182.98 234.9 140.7 252.96 140.7 252.96 160.64 255.84 160.64 255.84 137.57 234.9 137.57 234.9 128.11 231.97 128.11 231.97 186.31 271.69 186.38",
-                    fuelPresent: false,
-                    fuelSources: ["pump_2_boost"]
-                },
-                {
-                    id: "tank_2_boost_line2",
-                    points: "212.39 98.54 212.39 95.24 232.15 95.24 232.15 88.31 234.93 88.31 234.93 120.5 232.08 120.5 232.08 98.41 212.39 98.54",
-                    fuelPresent: false,
-                    fuelSources: ["pump_2_boost", "crossfeed_2_valve"]
-                },
-                {
-                    id: "tank_2_boost_line3",
-                    points: "205.65 17.6 205.65 16.95 231.93 16.93 232.02 80.54 234.99 80.54 234.99 42.24 234.99 16.93 252.88 16.91 252.88 13.97 183.27 13.97 183.27 16.97 202.65 16.96 202.65 17.6 202.72 22.84 205.65 22.84 205.65 17.6",
-                    fuelPresent: false,
-                    fuelSources: ["engine_2_valve"],
-                    connectedPressureSwitch: "engine_2_pressureSwitch"
-                },
-                {
-                    id: "tank_2_boost_line4",
-                    points: "202.89 45.12 205.83 45.12 205.83 37.36 202.83 37.36 202.89 45.12",
-                    fuelPresent: false,
-                    fuelSources: []
-                },
-                {
-                    id: "tank_2_dump_line1",
-                    points: "203.07 182.14 206.19 182.14 206.19 193.13 203.19 193.13 203.07 182.14",
-                    fuelPresent: false,
-                    fuelSources: ["pump_2_dump"]
-                },
-                {
-                    id: "tank_2_dump_line2",
-                    points: "203.13 220.41 206.13 220.41 206.13 200.98 203.07 200.98 203.13 220.41",
-                    fuelPresent: false,
-                    fuelSources: ["pump_2_dump"]
-                },
                 {
                     id: "tank_3_boost_line1",
                     points: "477.01 186.16 477.01 182.97 490.67 182.97 490.67 140.78 472.8 140.78 472.8 160.06 469.7 160.06 469.7 137.46 490.8 137.46 490.8 128.97 493.65 128.97 493.65 186.16 477.01 186.16",
@@ -767,38 +93,6 @@ class App extends React.Component {
                     fuelSources: ["pump_4_dump"]
                 },
                 {
-                    id: "left_AUX_line1",
-                    points: "279.49 173.16 279.49 169.98 296.49 169.98 296.49 173.1 279.49 173.16",
-                    fuelPresent: false,
-                    fuelSources: ["pump_left_AUX"]
-                },
-                {
-                    id: "left_AUX_line2",
-                    points: "263.97 199.04 266.96 199.04 266.96 173 271.48 173 271.48 169.87 266.84 169.87 266.84 155.32 272.45 155.32 272.45 152.06 266.9 152.06 266.9 137.57 275.32 137.57 275.32 134.29 266.83 134.29 266.83 120.74 263.85 120.74 263.97 199.04",
-                    fuelPresent: false,
-                    fuelSources: ["pump_left_AUX","left_bypass_valve","crossfeed_left_AUX_valve"],
-                    connectedPressureSwitch: "left_AUX_line_pressureSwitch"
-                },
-                {
-                    id: "left_EXT_main_line",
-                    points: "160.32 261.68 172.24 261.68 172.24 241.6 278.83 241.6 278.83 217.58 276.71 217.58 276.71 214.39 278.77 214.37 278.7 211.39 285.29 211.39 285.29 137.68 279.14 137.68 279.14 134.55 285.29 134.55 285.29 120.66 288.21 120.66 288.21 124.66 298.47 124.66 298.47 127.78 288.21 127.78 288.21 218.77 285.35 218.77 285.35 214.65 281.69 214.65 281.69 244.69 175.08 244.69 175.08 261.57 185.65 261.57 185.65 264.83 175.08 264.83 175.08 269.82 172.16 269.82 172.16 264.76 160.35 264.76 160.32 261.68",
-                    fuelPresent: false,
-                    fuelSources: ["pump_left_EXT_FWD", "pump_left_EXT_AFT","left_bypass_valve", "left_refuel_manifold_springValve","crossfeed_left_EXT_valve"],
-                    connectedPressureSwitch: "left_EXT_main_pressureSwitch"
-                },
-                {
-                    id: "left_EXT_FWD_line",
-                    points: "210.28 277.11 213.19 277.11 213.19 261.61 193.33 261.61 193.33 264.86 210.34 264.86 210.28 277.11",
-                    fuelPresent: false,
-                    fuelSources: ["pump_left_EXT_FWD"]
-                },
-                {
-                    id: "left_EXT_AFT_line",
-                    points: "133.45 277.05 130.47 277.05 130.47 261.54 152.2 261.54 152.2 264.79 133.33 264.79 133.45 277.05",
-                    fuelPresent: false,
-                    fuelSources: ["pump_left_EXT_AFT"]
-                },
-                {
                     id: "right_AUX_line1",
                     points: "429.48 173.16 429.48 169.98 446.43 169.98 446.43 173.16 443 173.16 429.48 173.16",
                     fuelPresent: false,
@@ -832,90 +126,26 @@ class App extends React.Component {
                 },
                 {
                     id: "refuel_line",
-                    points: "29.5 234.66 44.63 234.66 44.63 214.17 47.56 214.17 47.56 234.66 74.9 234.66 74.9 174.35 77.83 174.35 77.83 195.31 86.19 195.31 86.19 198.58 77.83 198.58 77.83 209.28 222.65 209.28 222.65 183.97 225.7 183.97 225.7 232.31 262.95 232.31 262.95 205.82 265.9 205.82 265.9 214.54 269.83 214.54 269.83 217.76 265.9 217.76 265.9 232.32 285.45 232.32 285.45 228.11 288.34 228.11 288.34 232.32 324.19 232.32 324.19 176.1 327.14 176.1 327.14 232.32 377.5 232.32 377.5 220.35 380.46 220.35 380.46 232.32 398.47 232.32 398.47 176.3 401.3 176.3 401.3 232.25 437.39 232.25 437.39 226.33 440.46 226.33 440.46 232.39 459.65 232.39 459.65 214.57 456.38 214.57 456.38 211.54 459.77 211.54 459.77 205.89 462.66 205.89 462.66 232.38 500.72 232.38 500.72 183.73 503.74 183.73 503.74 209.37 650.69 209.37 650.69 198.44 642.06 198.44 642.06 195.21 650.69 195.21 650.69 173.06 653.65 173.06 653.65 234.69 680.22 234.69 680.22 214.46 683.24 214.46 683.24 234.69 699.76 234.69 699.76 237.99 520.25 237.99 520.25 227.44 523.27 227.44 523.27 234.69 650.69 234.69 650.69 212.41 503.73 212.41 503.73 235.42 380.5 235.42 380.5 246.82 377.54 246.82 377.54 235.42 222.68 235.42 222.68 212.41 77.88 212.41 77.88 234.69 203.14 234.69 203.14 227.84 206.16 227.84 206.16 237.86 29.49 237.86 29.5 234.66",
+                    points: "377.5 232.32 377.5 220.35 380.46 220.35 380.46 232.32 398.47 232.32 398.47 176.3 401.3 176.3 401.3 232.25 437.39 232.25 437.39 226.33 440.46 226.33 440.46 232.39 459.65 232.39 459.65 214.57 456.38 214.57 456.38 211.54 459.77 211.54 459.77 205.89 462.66 205.89 462.66 232.38 500.72 232.38 500.72 183.73 503.74 183.73 503.74 209.37 650.69 209.37 650.69 198.44 642.06 198.44 642.06 195.21 650.69 195.21 650.69 173.06 653.65 173.06 653.65 234.69 680.22 234.69 680.22 214.46 683.24 214.46 683.24 234.69 699.76 234.69 699.76 237.99 520.25 237.99 520.25 227.44 523.27 227.44 523.27 234.69 650.69 234.69 650.69 212.41 503.73 212.41 503.73 235.42 380.5 235.42 380.5 246.82 377.54 246.82 377.54 235.42",
                     fuelPresent: false,
-                    fuelSources: ["tank_1_dump_valve", "tank_2_dump_valve", "tank_3_dump_valve", "tank_4_dump_valve", "left_AUX_dump_valve", "left_EXT_dump_valve", "right_AUX_dump_valve", "right_EXT_dump_valve"]
-                },
-                {
-                    id: "crossfeed_line1",
-                    points: "140.27 108.56 140.27 105.13 188.12 105.13 188.12 95.17 206.52 95.17 206.52 98.54 191.02 98.54 191.02 105.26 364.84 105.26 364.84 108.63 288.27 108.63 288.27 113.64 285.24 113.64 285.24 108.43 265.86 108.43 265.86 114.43 262.9 114.43 262.9 108.43 216.28 108.43 216.28 117 213.19 117 213.19 108.43 140.27 108.56",
-                    fuelPresent: false,
-                    fuelSources: ["crossfeed_1_valve", "crossfeed_2_valve", "crossfeed_left_AUX_valve", "crossfeed_left_EXT_valve", "crossfeed_separation_valve"],
-                    fuelTrap: ["crossfeed_1_valve", "crossfeed_2_valve", "crossfeed_left_AUX_valve", "crossfeed_left_EXT_valve", "crossfeed_3_valve", "crossfeed_4_valve", "crossfeed_right_AUX_valve", "crossfeed_right_EXT_valve", "crossfeed_primer_valve"],
-                    fuelTrapped: false
+                    fuelSources: ["tank_3_dump_valve", "tank_4_dump_valve", "right_AUX_dump_valve", "right_EXT_dump_valve"]
                 },
                 {
                     id: "crossfeed_line2",
                     points: "369.49 108.43 369.49 105.22 448.91 105.22 448.91 93.61 451.86 93.61 451.86 105.29 534.66 105.29 534.66 98.27 518.71 98.27 518.71 94.99 537.67 94.99 537.67 105.35 589.24 105.35 589.24 108.7 462.65 108.7 462.65 113.75 459.71 113.75 459.71 108.3 440.39 108.3 440.39 114.14 437.26 114.14 437.26 108.3 380.53 108.3 380.53 212.97 377.58 212.97 377.58 108.47 369.49 108.43",
                     fuelPresent: false,
                     fuelSources: ["crossfeed_3_valve", "crossfeed_4_valve", "crossfeed_right_AUX_valve", "crossfeed_right_EXT_valve", "crossfeed_separation_valve"],
-                    fuelTrap: ["crossfeed_1_valve", "crossfeed_2_valve", "crossfeed_left_AUX_valve", "crossfeed_left_EXT_valve", "crossfeed_3_valve", "crossfeed_4_valve", "crossfeed_right_AUX_valve", "crossfeed_right_EXT_valve", "crossfeed_primer_valve"],
+                    fuelTrap: ["crossfeed_2_valve", "crossfeed_3_valve", "crossfeed_4_valve", "crossfeed_right_AUX_valve", "crossfeed_right_EXT_valve"],
                     fuelTrapped: false
-                },
-                {
-                    id: "left_dump_line",
-                    points: "9.47 256.07 9.47 234.75 12.89 234.75 12.89 148.08 28.24 148.08 28.23 151.33 16.65 151.33 16.65 234.75 23.24 234.75 23.24 238.02 12.89 238.02 12.89 256.08 9.47 256.07",
-                    fuelPresent: false,
-                    fuelSources: ["left_dump_valve"]
                 },
                 {
                     id: "right_dump_line",
                     points: "717.76 256.64 714.8 256.64 714.8 237.79 705.55 237.79 705.55 234.43 711.97 234.43 711.97 151.12 697.42 151.12 697.42 147.83 714.92 147.83 714.92 234.56 717.82 234.56 717.76 256.64",
                     fuelPresent: false,
                     fuelSources: ["right_dump_valve"]
-                },
-                {
-                    id: "crossfeed_primer_line",
-                    points: "213.29 132.72 216.22 132.72 216.22 120.22 213.22 120.22 213.29 132.72",
-                    fuelPresent: false,
-                    fuelSources: ["crossfeed_primer_valve"]
-                },
-                {
-                    id: "SPR_line1",
-                    points: "386.69 292.42 370.99 292.42 375.4 287.71 375.4 274.53 377.7 274.53 377.7 254.52 380.49 254.52 380.49 265.52 415.04 265.52 415.04 268.63 380.49 268.63 380.49 274.6 382.6 274.6 382.6 287.98 386.69 292.42",
-                    fuelPresent: false,
-                    fuelSources: []
-                },
-                {
-                    id: "SPR_line2",
-                    points: "421.43 268.63 421.43 265.32 465.47 265.32 465.47 222.26 492.83 222.26 492.83 203.71 495.81 203.71 495.81 225.5 468.39 225.5 468.39 268.63 421.43 268.63",
-                    fuelPresent: false,
-                    fuelSources: []
-                },
-                {
-                    id: "APU_line",
-                    points: "276.71 186.23 276.71 182.97 283.17 182.97 283.17 200.84 345.85 200.84 345.85 69.45 348.77 69.45 348.77 203.83 280.25 203.83 280.25 186.23 276.71 186.23",
-                    fuelPresent: false,
-                    fuelSources: []
                 }
         ],
         rotaryValves: [
-                {
-                    id: "engine_1_valve",
-                    open: true,
-                    failed: false,
-                    fuelSources: ["tank_1_boost_line2"],
-                    fuelPresent: false,
-                    path_1_d: "M128,98.55a5.3,5.3,0,0,1-10.6,0h0a5.3,5.3,0,0,1,10.6,0Z",
-                    path_2_d: "M127.62,93.62a7,7,0,1,0,0,9.86A6.93,6.93,0,0,0,127.62,93.62Zm-9.1.77a5.86,5.86,0,0,1,4.17-1.73,5.92,5.92,0,0,1,3.3,1l-8.18,8.18a5.89,5.89,0,0,1,.71-7.46Zm8.33,8.32a5.88,5.88,0,0,1-7.46.72l8.17-8.18A5.89,5.89,0,0,1,126.85,102.71Z",
-                    lineX1: "114.5",
-                    lineY1: "84",
-                    lineX2: "122",
-                    lineY2: "84"
-                },
-                {
-                    id: "engine_2_valve",
-                    open: true,
-                    failed: false,
-                    fuelSources: ["tank_2_boost_line2"],
-                    fuelPresent: false,
-                    path_1_d: "M243.32,98.55a5.3,5.3,0,1,1-10.6,0h0a5.3,5.3,0,1,1,10.6,0Z",
-                    path_2_d: "M243,93.62a7,7,0,1,0,0,9.86A6.91,6.91,0,0,0,243,93.62Zm-9.09.77A5.82,5.82,0,0,1,238,92.66a5.92,5.92,0,0,1,3.3,1l-8.18,8.18a5.92,5.92,0,0,1-1-3.3A5.82,5.82,0,0,1,233.86,94.39Zm8.32,8.32a5.86,5.86,0,0,1-4.16,1.73,5.92,5.92,0,0,1-3.3-1l8.18-8.18A5.9,5.9,0,0,1,242.18,102.71Z",
-                    lineX1: "229.5",
-                    lineY1: "84",
-                    lineX2: "237.5",
-                    lineY2: "84"
-                },
                 {
                     id: "engine_3_valve",
                     open: true,
@@ -941,32 +171,6 @@ class App extends React.Component {
                     lineY1: "84",
                     lineX2: "612.5",
                     lineY2: "84"
-                },
-                {
-                    id: "tank_1_dump_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["tank_1_dump_line2"],
-                    fuelPresent: false,
-                    path_1_d: "M50.5,222a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,1,1,0-10.6Z",
-                    path_2_d: "M45.56,232.26a7,7,0,1,0,0-9.87A7,7,0,0,0,45.56,232.26Zm9.1-.77a5.89,5.89,0,0,1-7.46.71L55.37,224a5.89,5.89,0,0,1-.71,7.46Zm-8.33-8.33a5.87,5.87,0,0,1,4.17-1.72,5.78,5.78,0,0,1,3.29,1l-8.17,8.17A5.9,5.9,0,0,1,46.33,223.16Z",
-                    lineX1: "49.64",
-                    lineY1: "212.72",
-                    lineX2: "42.32",
-                    lineY2: "212.72"
-                },
-                {
-                    id: "tank_2_dump_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["tank_2_dump_line2"],
-                    fuelPresent: false,
-                    path_1_d: "M209.11,233.29a5.31,5.31,0,0,1,0,10.61h0a5.31,5.31,0,0,1,0-10.61Z",
-                    path_2_d: "M204.18,243.54a7,7,0,1,0,0-9.87A7,7,0,0,0,204.18,243.54Zm9.09-.78a5.88,5.88,0,0,1-7.46.72L214,235.3a5.88,5.88,0,0,1-.72,7.46ZM205,234.44a5.86,5.86,0,0,1,4.16-1.73,5.92,5.92,0,0,1,3.3,1l-8.18,8.18A5.9,5.9,0,0,1,205,234.44Z",
-                    lineX1: "208.26",
-                    lineY1: "224",
-                    lineX2: "200.94",
-                    lineY2: "224"
                 },
                 {
                     id: "tank_3_dump_valve",
@@ -995,19 +199,6 @@ class App extends React.Component {
                     lineY2: "211.68"
                 },
                 {
-                    id: "left_AUX_dump_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["left_AUX_line2"],
-                    fuelPresent: false,
-                    path_1_d: "M269.67,210.42a5.31,5.31,0,1,1,0,10.61h0a5.31,5.31,0,0,1,0-10.61Z",
-                    path_2_d: "M264.74,220.66a7,7,0,1,0,0-9.86A6.93,6.93,0,0,0,264.74,220.66Zm9.1-.77a5.88,5.88,0,0,1-7.46.72l8.17-8.18a5.89,5.89,0,0,1-.71,7.46Zm-8.33-8.32a5.88,5.88,0,0,1,7.46-.72L264.8,219A5.89,5.89,0,0,1,265.51,211.57Z",
-                    lineX1: "268.82",
-                    lineY1: "201.13",
-                    lineX2: "261.5",
-                    lineY2: "201.13"
-                },
-                {
                     id: "right_AUX_dump_valve",
                     open: false,
                     failed: false,
@@ -1019,19 +210,6 @@ class App extends React.Component {
                     lineY1: "201.13",
                     lineX2: "457.59",
                     lineY2: "201.13"
-                },
-                {
-                    id: "left_EXT_dump_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["left_EXT_main_line", "refuel_line"],
-                    fuelPresent: false,
-                    path_1_d: "M271.34,230.6a5.31,5.31,0,0,1,10.61,0h0a5.31,5.31,0,0,1-10.61,0Z",
-                    path_2_d: "M281.58,225.67a7,7,0,1,0,0,9.86A6.91,6.91,0,0,0,281.58,225.67Zm-9.09.77a5.82,5.82,0,0,1,4.16-1.73,5.92,5.92,0,0,1,3.3,1l-8.18,8.18a5.92,5.92,0,0,1-1-3.3A5.86,5.86,0,0,1,272.49,226.44Zm8.32,8.32a5.86,5.86,0,0,1-4.16,1.73,5.92,5.92,0,0,1-3.3-1l8.18-8.18A5.89,5.89,0,0,1,280.81,234.76Z",
-                    lineX1: "272.14",
-                    lineY1: "212.34",
-                    lineX2: "272.14",
-                    lineY2: "219.66"
                 },
                 {
                     id: "right_EXT_dump_valve",
@@ -1047,19 +225,6 @@ class App extends React.Component {
                     lineY2: "216.63"
                 },
                 {
-                    id: "left_dump_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["refuel_line"],
-                    fuelPresent: false,
-                    path_1_d: "M25,250.65a5.3,5.3,0,0,1,10.6,0h0a5.3,5.3,0,0,1-10.6,0Z",
-                    path_2_d: "M35.28,245.71a7,7,0,1,0,0,9.87A7,7,0,0,0,35.28,245.71Zm-9.1.78a5.88,5.88,0,0,1,7.46-.72L25.47,254a5.89,5.89,0,0,1,.71-7.46Zm8.33,8.32a5.88,5.88,0,0,1-7.46.72l8.17-8.18A5.9,5.9,0,0,1,34.51,254.81Z",
-                    lineX1: "25.83",
-                    lineY1: "232.39",
-                    lineX2: "25.83",
-                    lineY2: "239.71"
-                },
-                {
                     id: "right_dump_valve",
                     open: false,
                     failed: false,
@@ -1071,32 +236,6 @@ class App extends React.Component {
                     lineY1: "239.83",
                     lineX2: "702.01",
                     lineY2: "232.51"
-                },
-                {
-                    id: "crossfeed_1_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["tank_1_boost_line1", "crossfeed_line1"],
-                    fuelPresent: false,
-                    path_1_d: "M146.37,121.2a5.31,5.31,0,0,1-10.61,0h0a5.31,5.31,0,0,1,10.61,0Z",
-                    path_2_d: "M146,116.27a7,7,0,1,0,0,9.87A7,7,0,0,0,146,116.27Zm-9.1.77a5.89,5.89,0,0,1,7.47-.72l-8.18,8.18a5.89,5.89,0,0,1,.71-7.46Zm8.33,8.32a5.88,5.88,0,0,1-7.46.72l8.17-8.18A5.89,5.89,0,0,1,145.22,125.36Z",
-                    lineX1: "136.54",
-                    lineY1: "110.26",
-                    lineX2: "136.54",
-                    lineY2: "102.94"
-                },
-                {
-                    id: "crossfeed_2_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["tank_2_boost_line1", "crossfeed_line1"],
-                    fuelPresent: false,
-                    path_1_d: "M219.45,111.41a5.31,5.31,0,1,1-10.61,0h0a5.31,5.31,0,0,1,10.61,0Z",
-                    path_2_d: "M219.08,106.48a7,7,0,1,0,0,9.87A7,7,0,0,0,219.08,106.48Zm-9.1.77a5.89,5.89,0,0,1,7.46-.71l-8.17,8.17a5.89,5.89,0,0,1,.71-7.46Zm8.33,8.33a5.85,5.85,0,0,1-4.17,1.72,5.78,5.78,0,0,1-3.29-1l8.17-8.17A5.9,5.9,0,0,1,218.31,115.58Z",
-                    lineX1: "209.63",
-                    lineY1: "100.47",
-                    lineX2: "209.63",
-                    lineY2: "93.15"
                 },
                 {
                     id: "crossfeed_3_valve",
@@ -1128,7 +267,7 @@ class App extends React.Component {
                     id: "crossfeed_separation_valve",
                     open: false,
                     failed: false,
-                    fuelSources: ["crossfeed_line1", "crossfeed_line2"],
+                    fuelSources: ["crossfeed_line2"],
                     fuelPresent: false,
                     path_1_d: "M365.91,122.05a5.31,5.31,0,0,1,10.61,0h0a5.31,5.31,0,1,1-10.61,0Z",
                     path_2_d: "M376.15,117.12a7,7,0,1,0,0,9.87A6.94,6.94,0,0,0,376.15,117.12Zm-9.09.77a5.89,5.89,0,0,1,7.46-.71l-8.18,8.17a5.88,5.88,0,0,1,.72-7.46Zm8.32,8.33a5.89,5.89,0,0,1-7.46.71l8.18-8.17A5.89,5.89,0,0,1,375.38,126.22Z",
@@ -1136,32 +275,6 @@ class App extends React.Component {
                     lineY1: "103.79",
                     lineX2: "366.71",
                     lineY2: "111.11"
-                },
-                {
-                    id: "crossfeed_left_AUX_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["left_AUX_line2","crossfeed_line1"],
-                    fuelPresent: false,
-                    path_1_d: "M268.67,126.3a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,0,1,0-10.6Z",
-                    path_2_d: "M263.74,136.54a7,7,0,1,0,0-9.87A7,7,0,0,0,263.74,136.54Zm9.1-.77a5.87,5.87,0,0,1-4.17,1.72,5.78,5.78,0,0,1-3.29-1l8.17-8.17a5.78,5.78,0,0,1,1,3.29A5.85,5.85,0,0,1,272.84,135.77Zm-8.33-8.33a5.89,5.89,0,0,1,7.46-.71l-8.17,8.17A5.89,5.89,0,0,1,264.51,127.44Z",
-                    lineX1: "267.82",
-                    lineY1: "117",
-                    lineX2: "260.5",
-                    lineY2: "117"
-                },
-                {
-                    id: "crossfeed_left_EXT_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["left_EXT_main_line","crossfeed_line1"],
-                    fuelPresent: false,
-                    path_1_d: "M291.2,126.3a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,0,1,0-10.6Z",
-                    path_2_d: "M286.26,136.54a7,7,0,1,0,0-9.87A7,7,0,0,0,286.26,136.54Zm9.1-.77a5.89,5.89,0,0,1-7.46.71l8.18-8.17a5.91,5.91,0,0,1-.72,7.46ZM287,127.44a5.91,5.91,0,0,1,7.47-.71l-8.18,8.17A5.9,5.9,0,0,1,287,127.44Z",
-                    lineX1: "290.35",
-                    lineY1: "117",
-                    lineX2: "283.02",
-                    lineY2: "117"
                 },
                 {
                     id: "crossfeed_right_EXT_valve",
@@ -1190,45 +303,6 @@ class App extends React.Component {
                     lineY2: "117"
                 },
                 {
-                    id: "crossfeed_primer_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["crossfeed_line1"],
-                    fuelPresent: false,
-                    path_1_d: "M219.1,126.3a5.3,5.3,0,1,1,0,10.6h0a5.3,5.3,0,1,1,0-10.6Z",
-                    path_2_d: "M214.17,136.54a7,7,0,1,0,0-9.87A6.94,6.94,0,0,0,214.17,136.54Zm9.09-.77a5.89,5.89,0,0,1-7.46.71l8.18-8.17a5.88,5.88,0,0,1-.72,7.46Zm-8.32-8.33a5.89,5.89,0,0,1,7.46-.71l-8.18,8.17A5.9,5.9,0,0,1,214.94,127.44Z",
-                    lineX1: "218.25",
-                    lineY1: "117",
-                    lineX2: "210.92",
-                    lineY2: "117"
-                },
-                {
-                    id: "apu_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: [],
-                    fuelPresent: false,
-                    path_1_d: "M273,198.73a5.31,5.31,0,1,1,10.61,0h0a5.31,5.31,0,0,1-10.61,0Z",
-                    path_2_d: "M283.25,193.79a7,7,0,1,0,0,9.87A6.94,6.94,0,0,0,283.25,193.79Zm-9.09.77a5.89,5.89,0,0,1,7.46-.71L273.44,202a5.88,5.88,0,0,1,.72-7.46Zm8.32,8.33a5.89,5.89,0,0,1-7.46.71l8.18-8.17A5.89,5.89,0,0,1,282.48,202.89Z",
-                    lineX1: "273.81",
-                    lineY1: "180.46",
-                    lineX2: "273.81",
-                    lineY2: "187.79"
-                },
-                {
-                    id: "left_bypass_valve",
-                    open: false,
-                    failed: false,
-                    fuelSources: ["left_AUX_line2","left_EXT_main_line"],
-                    fuelPresent: false,
-                    path_1_d: "M275.91,151.24a5.31,5.31,0,0,1,10.61,0h0a5.31,5.31,0,1,1-10.61,0Z",
-                    path_2_d: "M286.15,146.31a7,7,0,1,0,0,9.87A6.94,6.94,0,0,0,286.15,146.31Zm-9.09.77a5.89,5.89,0,0,1,7.46-.71l-8.18,8.17a5.88,5.88,0,0,1,.72-7.46Zm8.32,8.33a5.89,5.89,0,0,1-7.46.71L286.1,148A5.89,5.89,0,0,1,285.38,155.41Z",
-                    lineX1: "276.71",
-                    lineY1: "132.98",
-                    lineX2: "276.71",
-                    lineY2: "140.31"
-                },
-                {
                     id: "right_bypass_valve",
                     open: false,
                     failed: false,
@@ -1255,19 +329,6 @@ class App extends React.Component {
                     lineY2: "249.02"
                 },
                 {
-                    id: "spr_valve_2",
-                    open: false,
-                    failed: false,
-                    fuelSources: [],
-                    fuelPresent: false,
-                    path_1_d: "M417,281.74a5.31,5.31,0,0,1,10.61,0h0a5.31,5.31,0,0,1-10.61,0Z",
-                    path_2_d: "M427.28,276.8a7,7,0,1,0,0,9.87A7,7,0,0,0,427.28,276.8Zm-9.09.77a5.89,5.89,0,0,1,7.46-.71L417.47,285a5.89,5.89,0,0,1,.72-7.47Zm8.32,8.33a5.85,5.85,0,0,1-4.16,1.72,5.91,5.91,0,0,1-3.3-1l8.18-8.18A5.9,5.9,0,0,1,426.51,285.9Z",
-                    lineX1: "417.83",
-                    lineY1: "263.47",
-                    lineX2: "417.83",
-                    lineY2: "270.8"
-                },
-                {
                     id: "spr_valve_3",
                     open: false,
                     failed: false,
@@ -1279,49 +340,9 @@ class App extends React.Component {
                     lineY1: "216",
                     lineX2: "375.32",
                     lineY2: "216"
-                },
+                }
         ],
         springValves: [
-                {
-                    id: "tank_1_boost_springValve",
-                    fuelPresent: false,
-                    rectX: "114.5",
-                    rectY: "112.5",
-                    springClasses: "spring topCenter",
-                    circX: "118.17",
-                    circY: "125.19",
-                    pathD: "M123.72,137.47s-3.7-.3-3.53-1.27c.3-1.62,4.36-1.52,4.36-1.52s-5,.64-4.38-.79c.52-1.15,4.38-1.35,4.38-1.35s-5.19.59-4.47-.88,4.71-1.35,4.71-1.35-5.78.4-4.48-1.13c.87-1,4.48-1.17,4.48-1.17"
-                },
-                {
-                    id: "tank_1_dump_springValve",
-                    fuelPresent: false,
-                    rectX: "42.61",
-                    rectY: "182.68",
-                    springClasses: "spring bottomCenter",
-                    circX: "45.98",
-                    circY: "186.04",
-                    pathD: "M49.46,203s3.71.3,3.53,1.27c-.29,1.63-4.36,1.52-4.36,1.52s5-.64,4.39.8c-.52,1.14-4.39,1.35-4.39,1.35s5.19-.59,4.47.87-4.71,1.35-4.71,1.35,5.79-.4,4.48,1.13c-.86,1-4.48,1.17-4.48,1.17"
-                },
-                {
-                    id: "tank_2_boost_springValve",
-                    fuelPresent: false,
-                    rectX: "229.5",
-                    rectY: "112.5",
-                    springClasses: "spring topCenter",
-                    circX: "233.21",
-                    circY: "125.19",
-                    pathD: "M238.76,137.47s-3.71-.3-3.53-1.27c.29-1.62,4.36-1.52,4.36-1.52s-5,.64-4.39-.79c.52-1.15,4.39-1.35,4.39-1.35s-5.19.59-4.47-.88,4.71-1.35,4.71-1.35-5.78.4-4.48-1.13c.87-1,4.48-1.17,4.48-1.17"
-                },
-                {
-                    id: "tank_2_dump_springValve",
-                    fuelPresent: false,
-                    rectX: "201.11",
-                    rectY: "189.28",
-                    springClasses: "spring bottomCenter",
-                    circX: "204.63",
-                    circY: "192.85",
-                    pathD: "M208.11,209.77s3.7.3,3.53,1.27c-.29,1.63-4.36,1.53-4.36,1.53s5-.64,4.39.79c-.52,1.14-4.39,1.35-4.39,1.35s5.19-.59,4.47.87-4.71,1.35-4.71,1.35,5.78-.39,4.48,1.13c-.87,1-4.48,1.18-4.48,1.18"
-                },
                 {
                     id: "tank_3_boost_springValve",
                     fuelPresent: false,
@@ -1363,16 +384,6 @@ class App extends React.Component {
                     pathD: "M685,199.45s3.71.3,3.53,1.27c-.29,1.63-4.36,1.53-4.36,1.53s5-.65,4.39.79c-.52,1.14-4.39,1.35-4.39,1.35s5.19-.59,4.48.87-4.72,1.35-4.72,1.35,5.79-.39,4.48,1.13c-.86,1-4.48,1.17-4.48,1.17"
                 },
                 {
-                    id: "left_AUX_springValve",
-                    fuelPresent: false,
-                    rectX: "268",
-                    rectY: "167.5",
-                    springClasses: "spring horizontal rightCenter",
-                    circX: "280.6",
-                    circY: "171.32",
-                    pathD: "M282.8,184.88s-.3,3.71-1.27,3.53c-1.63-.29-1.53-4.36-1.53-4.36s.65,5-.79,4.39c-1.14-.52-1.35-4.39-1.35-4.39s.59,5.19-.87,4.47-1.35-4.71-1.35-4.71.39,5.78-1.13,4.48c-1-.86-1.18-4.48-1.18-4.48"
-                },
-                {
                     id: "right_AUX_springValve",
                     fuelPresent: false,
                     rectX: "442.5",
@@ -1381,26 +392,6 @@ class App extends React.Component {
                     circX: "445.52",
                     circY: "171.32",
                     pathD: "M452.35,187s.3-3.7,1.27-3.53c1.63.3,1.53,4.36,1.53,4.36s-.64-5,.79-4.38c1.14.52,1.35,4.38,1.35,4.38s-.59-5.19.88-4.47,1.35,4.71,1.35,4.71-.4-5.78,1.13-4.48c1,.87,1.17,4.48,1.17,4.48"
-                },
-                {
-                    id: "left_EXT_FWD_springValve",
-                    fuelPresent: false,
-                    rectX: "185.44",
-                    rectY: "258.93",
-                    springClasses: "spring horizontal rightCenter",
-                    circX: "197.92",
-                    circY: "262.44",
-                    pathD: "M200.11,276s-.3,3.7-1.27,3.52c-1.63-.29-1.52-4.35-1.52-4.35s.64,5-.8,4.38c-1.14-.52-1.35-4.38-1.35-4.38s.6,5.18-.87,4.47-1.35-4.71-1.35-4.71.4,5.78-1.13,4.47c-1-.86-1.17-4.47-1.17-4.47"
-                },
-                {
-                    id: "left_EXT_AFT_springValve",
-                    fuelPresent: false,
-                    rectX: "145.44",
-                    rectY: "258.93",
-                    springClasses: "spring horizontal leftCenter",
-                    circX: "149.02",
-                    circY: "262.44",
-                    pathD: "M155.85,278.07s.3-3.7,1.27-3.52c1.63.29,1.53,4.35,1.53,4.35s-.64-5,.79-4.38c1.14.52,1.35,4.38,1.35,4.38s-.59-5.18.88-4.47,1.35,4.72,1.35,4.72-.4-5.79,1.13-4.48c1,.86,1.17,4.48,1.17,4.48"
                 },
                 {
                     id: "right_EXT_FWD_springValve",
@@ -1423,16 +414,6 @@ class App extends React.Component {
                     pathD: "M574.84,276s-.3,3.7-1.27,3.52c-1.63-.29-1.53-4.35-1.53-4.35s.65,5-.79,4.38c-1.14-.52-1.35-4.38-1.35-4.38s.59,5.18-.87,4.47-1.35-4.71-1.35-4.71.39,5.78-1.13,4.47c-1-.86-1.18-4.47-1.18-4.47"
                 },
                 {
-                    id: "left_refuel_manifold_springValve",
-                    fuelPresent: false,
-                    rectX: "283.46",
-                    rectY: "215.26",
-                    springClasses: "spring topCenter",
-                    circX: "286.97",
-                    circY: "227.78",
-                    pathD: "M292.52,240.07s-3.71-.3-3.53-1.27c.29-1.63,4.36-1.53,4.36-1.53s-5,.64-4.39-.79c.52-1.14,4.39-1.35,4.39-1.35s-5.19.59-4.47-.88,4.71-1.35,4.71-1.35-5.79.4-4.48-1.13c.86-1,4.48-1.17,4.48-1.17"
-                },
-                {
                     id: "right_refuel_manifold_springValve",
                     fuelPresent: false,
                     rectX: "435.3",
@@ -1444,41 +425,6 @@ class App extends React.Component {
                 }
         ],
         fuelPumps: [
-                {
-                    id: "pump_1_boost",
-                    connectedSpringValve: "tank_1_boost_springValve",
-                    connectedToggleSwitch: "tank_1_boostSwitch",
-                    transform: "translate(0,0)",
-                    open: true,
-                    fuelPresent: false,
-                    failed: false
-                },
-                {
-                    id: "pump_1_dump",
-                    connectedSpringValve: "tank_1_dump_springValve",
-                    connectedToggleSwitch: "tank_1_dumpSwitch",
-                    transform: "translate(-113, -5)",
-                    open: true,
-                    fuelPresent: false,
-                    failed: false
-                },
-                {
-                    id: "pump_2_boost",
-                    connectedSpringValve: "tank_2_boost_springValve",
-                    connectedToggleSwitch: "tank_2_boostSwitch",
-                    transform: "translate(91, 12)",
-                    open: true,
-                    fuelPresent: false,
-                    failed: false
-                },
-                {
-                    id: "pump_2_dump",
-                    connectedSpringValve: "tank_2_dump_springValve",
-                    connectedToggleSwitch: "tank_2_dumpSwitch",
-                    transform: "translate(45, 8)",
-                    fuelPresent: false,
-                    failed: false
-                },
                 {
                     id: "pump_3_boost",
                     transform: "translate(316, 12)",
@@ -1512,32 +458,6 @@ class App extends React.Component {
                     failed: false
                 },
                 {
-                    id: "pump_left_AUX",
-                    transform: "translate(145, 2)",
-                    connectedSpringValve: "left_AUX_springValve",
-                    connectedToggleSwitch: "left_AUX_boostSwitch",
-                    fuelPresent: false,
-                    failed: false,
-                    emptyLightStatus: 'flash'
-                },
-                {
-                    id: "pump_left_EXT_FWD",
-                    transform: "translate(52, 110)",
-                    connectedSpringValve: "left_EXT_FWD_springValve",
-                    connectedToggleSwitch: "left_EXT_FWD_boostSwitch",
-                    fuelPresent: false,
-                    emptyLightStatus: 'flash'
-                },
-                {
-                    id: "pump_left_EXT_AFT",
-                    transform: "translate(-27, 110)",
-                    connectedSpringValve: "left_EXT_AFT_springValve",
-                    connectedToggleSwitch: "left_EXT_AFT_boostSwitch",
-                    fuelPresent: false,
-                    failed: false,
-                    emptyLightStatus: 'flash'
-                },
-                {
                     id: "pump_right_AUX",
                     transform: "translate(262, 2)",
                     connectedSpringValve: "right_AUX_springValve",
@@ -1567,16 +487,6 @@ class App extends React.Component {
         ],
         pressureSwitches: [
                 {
-                    id: "engine_1_pressureSwitch",
-                    transform: "translate(0, 0)",
-                    fuelPresent: false
-                },
-                {
-                    id: "engine_2_pressureSwitch",
-                    transform: "translate(120, 0)",
-                    fuelPresent: false
-                },
-                {
                     id: "engine_3_pressureSwitch",
                     transform: "rotate(180, 300, 16)",
                     fuelPresent: false
@@ -1584,16 +494,6 @@ class App extends React.Component {
                 {
                     id: "engine_4_pressureSwitch",
                     transform: "rotate(180, 360, 16)",
-                    fuelPresent: false
-                },
-                {
-                    id: "left_AUX_line_pressureSwitch",
-                    transform: "translate(168, 141) scale(0.8)",
-                    fuelPresent: false
-                },
-                {
-                    id: "left_EXT_main_pressureSwitch",
-                    transform: "translate(169, 110)",
                     fuelPresent: false
                 },
                 {
@@ -1609,131 +509,66 @@ class App extends React.Component {
         ],
         toggleSwitches: [
                 {
-                    id: "tank_1_boostSwitch",
-                    transform: "translate(0, 0)",
-                    connectedPump: "pump_1_boost",
-                    switchedOn: false
-                },
-                {
-                    id: "tank_2_boostSwitch",
-                    transform: "translate(77, 0)",
-                    connectedPump: "pump_2_boost",
-                    switchedOn: false
-                },
-                {
                     id: "tank_3_boostSwitch",
-                    transform: "translate(548, 0)",
+                    transform: "translate(546, 0)",
                     connectedPump: "pump_3_boost",
                     switchedOn: false
                 },
                 {
                     id: "tank_4_boostSwitch",
-                    transform: "translate(625, 0)",
+                    transform: "translate(623, 0)",
                     connectedPump: "pump_4_boost",
                     switchedOn: false
                 },
                 {
-                    id: "left_AUX_boostSwitch",
-                    transform: "translate(149, 0)",
-                    connectedPump: "pump_left_AUX",
-                    switchedOn: false
-                },
-                {
-                    id: "left_EXT_FWD_boostSwitch",
-                    transform: "translate(204, -17)",
-                    connectedPump: "pump_left_EXT_FWD",
-                    switchedOn: false
-                },
-                {
-                    id: "left_EXT_AFT_boostSwitch",
-                    transform: "translate(247, -17)",
-                    connectedPump: "pump_left_EXT_AFT",
-                    switchedOn: false
-                },
-                {
                     id: "right_AUX_boostSwitch",
-                    transform: "translate(476, 0)",
+                    transform: "translate(474, 0)",
                     connectedPump: "pump_right_AUX",
                     switchedOn: false
                 },
                 {
                     id: "right_EXT_FWD_boostSwitch",
-                    transform: "translate(420, -17)",
+                    transform: "translate(418, -17)",
                     connectedPump: "pump_right_EXT_FWD",
                     switchedOn: false
                 },
                 {
                     id: "right_EXT_AFT_boostSwitch",
-                    transform: "translate(377, -17)",
+                    transform: "translate(375, -17)",
                     connectedPump: "pump_right_EXT_AFT",
                     switchedOn: false
                 },
                 {
-                    id: "tank_1_dumpSwitch",
-                    transform: "translate(50, -120)",
-                    connectedPump: "pump_1_dump",
-                    connectedDumpValve: "tank_1_dump_valve",
-                    switchedOn: false
-                },
-                {
-                    id: "tank_2_dumpSwitch",
-                    transform: "translate(92, -120)",
-                    connectedPump: "pump_2_dump",
-                    connectedDumpValve: "tank_2_dump_valve",
-                    switchedOn: false
-                },
-                {
                     id: "tank_3_dumpSwitch",
-                    transform: "translate(532, -120)",
+                    transform: "translate(530, -120)",
                     connectedPump: "pump_3_dump",
                     connectedDumpValve: "tank_3_dump_valve",
                     switchedOn: false
                 },
                 {
                     id: "tank_4_dumpSwitch",
-                    transform: "translate(574, -120)",
+                    transform: "translate(572, -120)",
                     connectedPump: "pump_4_dump",
                     connectedDumpValve: "tank_4_dump_valve",
                     switchedOn: false
                 },
                 {
-                    id: "left_AUX_dumpSwitch",
-                    transform: "translate(164.5, -120)",
-                    connectedPump: "pump_left_AUX",
-                    connectedDumpValve: "left_AUX_dump_valve",
-                    switchedOn: false
-                },
-                {
-                    id: "left_EXT_dumpSwitch",
-                    transform: "translate(225, -120)",
-                    connectedPump: "pump_left_EXT_AFT",
-                    connectedDumpValve: "left_EXT_dump_valve",
-                    switchedOn: false
-                },
-                {
                     id: "right_AUX_dumpSwitch",
-                    transform: "translate(460, -120)",
+                    transform: "translate(458, -120)",
                     connectedPump: "pump_right_AUX",
                     connectedDumpValve: "right_AUX_dump_valve",
                     switchedOn: false
                 },
                 {
                     id: "right_EXT_dumpSwitch",
-                    transform: "translate(398.5, -120)",
+                    transform: "translate(396, -120)",
                     connectedPump: "pump_right_EXT_AFT",
                     connectedDumpValve: "right_EXT_dump_valve",
                     switchedOn: false
                 },
                 {
-                    id: "left_dump_valveSwitch",
-                    transform: "translate(-8, -10), scale(0.75)",
-                    connectedPump: "",
-                    connectedDumpValve: "left_dump_valve",
-                    switchedOn: false
-                },
-                {
                     id: "right_dump_valveSwitch",
-                    transform: "translate(658.5, -10), scale(0.75)",
+                    transform: "translate(658, -10), scale(0.75)",
                     connectedPump: "",
                     connectedDumpValve: "right_dump_valve",
                     switchedOn: false
@@ -1742,95 +577,37 @@ class App extends React.Component {
         ],
         rotarySwitches: [
                 {
-                    id: "crossfeed_switch_tank_1",
-                    connectedValve: "crossfeed_1_valve",
-                    transform: "",
-                    switchedOn: false
-                },
-                {
-                    id: "crossfeed_switch_tank_2",
-                    connectedValve: "crossfeed_2_valve",
-                    transform: "translate(77, 0)",
-                    switchedOn: false
-                },
-                {
-                    id: "crossfeed_switch_left_AUX",
-                    connectedValve: "crossfeed_left_AUX_valve",
-                    transform: "translate(122, 0)",
-                    switchedOn: false
-                },
-                {
-                    id: "bypass_switch_left",
-                    connectedValve: "left_bypass_valve",
-                    transform: "translate(160, -20)",
-                    switchedOn: false
-                },
-                {
-                    id: "crossfeed_switch_left_EXT",
-                    connectedValve: "crossfeed_left_EXT_valve",
-                    transform: "translate(198.5, 0)",
-                    switchedOn: false
-                },
-                {
-                    id: "crossfeed_switch_separation",
-                    connectedValve: "crossfeed_separation_valve",
-                    transform: "translate(285.5, 0)",
-                    switchedOn: false
-                },
-                {
                     id: "crossfeed_switch_tank_3",
                     connectedValve: "crossfeed_3_valve",
-                    transform: "translate(493.5, 0)",
+                    transform: "translate(491, 0)",
                     switchedOn: false
                 },
                 {
                     id: "crossfeed_switch_tank_4",
                     connectedValve: "crossfeed_4_valve",
-                    transform: "translate(570.5, 0)",
+                    transform: "translate(568, 0)",
                     switchedOn: false
                 },
                 {
                     id: "crossfeed_switch_right_AUX",
                     connectedValve: "crossfeed_right_AUX_valve",
-                    transform: "translate(448.5, 0)",
+                    transform: "translate(446, 0)",
                     switchedOn: false
                 },
                 {
                     id: "bypass_switch_right",
                     connectedValve: "right_bypass_valve",
-                    transform: "translate(410, -20)",
+                    transform: "translate(408, -20)",
                     switchedOn: false
                 },
                 {
                     id: "crossfeed_switch_right_EXT",
                     connectedValve: "crossfeed_right_EXT_valve",
-                    transform: "translate(372, 0)",
-                    switchedOn: false
-                },
-                {
-                    id: "crossfeed_primer_button",
-                    connectedValve: "crossfeed_primer_valve",
-                    transform: "",
+                    transform: "translate(369, 0)",
                     switchedOn: false
                 }
         ],
         quantityIndicators: [
-            {
-                id: 'tank_1_indicator_needle',
-                points: '52.78 378.36 54.82 379.15 48.67 395.82 45.35 401.43 46.6 395.02 52.78 378.36',
-                quantity: 6000,
-                maxQuantity: 10000,
-                minQuantity: 2100,
-                dumping: "no"
-            },
-            {
-                id: 'tank_2_indicator_needle',
-                points: '129.63 378.36 131.7 379.12 125.66 395.85 122.4 401.49 123.59 395.08 129.63 378.36',
-                quantity: 7000,
-                maxQuantity: 9000,
-                minQuantity: 1800,
-                dumping: "no"
-            },
             {
                 id: 'tank_3_indicator_needle',
                 points: '599.78 378.36 601.85 379.12 595.96 395.88 592.72 401.52 593.89 395.14 599.78 378.36',
@@ -1845,22 +622,6 @@ class App extends React.Component {
                 quantity: 6000,
                 maxQuantity: 10000,
                 minQuantity: 2100,
-                dumping: "no"
-            },
-            {
-                id: 'left_AUX_indicator_needle',
-                points: '201.51 378.36 203.58 379.12 197.69 395.88 194.46 401.52 195.62 395.14 201.51 378.36',
-                quantity: 6000,
-                maxQuantity: 7000,
-                minQuantity: 0,
-                dumping: "no"
-            },
-            {
-                id: 'left_EXT_indicator_needle',
-                points: '277.94 378.36 280.01 379.12 274.05 395.88 270.79 401.52 271.98 395.11 277.94 378.36',
-                quantity: 4500,
-                maxQuantity: 10000,
-                minQuantity: 0,
                 dumping: "no"
             },
             {
@@ -1907,26 +668,33 @@ class App extends React.Component {
         let newSpringValves = [...this.state.springValves];
         let newToggleSwitches = [...this.state.toggleSwitches];
         let stateTest = this.state.stateTestVal;
+
+        //is failed item a fuel pump or rotary valve
         if (itemType === "fuelPumps") {
             const fuelPumpIndex = this.state.fuelPumps.findIndex(fuelPump => fuelPump.id === id);
+            
+            //get indexes of connected spring valve and toggle switch
             let springValveIndex = newSpringValves.findIndex(valve => valve.id === newFuelPumps[fuelPumpIndex].connectedSpringValve);
             let toggleSwitchIndex = newToggleSwitches.findIndex(sw => sw.id === newFuelPumps[fuelPumpIndex].connectedToggleSwitch);
+            
+            //toggle fuel pump failed status
             newFuelPumps[fuelPumpIndex] = {...newFuelPumps[fuelPumpIndex], failed: !newFuelPumps[fuelPumpIndex].failed};
+            
+            //if pump is not failed and toggle switch is on then fuel is present
             if (newFuelPumps[fuelPumpIndex].failed) {
                 newFuelPumps[fuelPumpIndex].fuelPresent = false;
                 newSpringValves[springValveIndex].fuelPresent = false;
-            } else {
-                if (newToggleSwitches[toggleSwitchIndex].switchedOn) {
-                    newFuelPumps[fuelPumpIndex].fuelPresent = true;
-                    newSpringValves[springValveIndex].fuelPresent = true;
-                }
+            } else if (newToggleSwitches[toggleSwitchIndex].switchedOn) {
+                newFuelPumps[fuelPumpIndex].fuelPresent = true;
+                newSpringValves[springValveIndex].fuelPresent = true;
             }
         } else if (itemType === "rotaryValves") {
+            //toggle rotary valve failed status
             const rotaryValveIndex = this.state.rotaryValves.findIndex(valve => valve.id === id);
             newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], failed: !newRotaryValves[rotaryValveIndex].failed};
         }
 
-        this.setState( prevState => {
+        this.setState( () => {
             return {
                 fuelPumps: newFuelPumps,
                 rotaryValves: newRotaryValves,
@@ -1951,21 +719,18 @@ class App extends React.Component {
         let connectedFuelPump = newToggleSwitches[toggleSwitchIndex].connectedPump;
         let fuelPumpIndex = newFuelPumps.findIndex(fuelPump => fuelPump.id === connectedFuelPump);
 
-        //get connected spring valve if there is a connected pump
-        let connectedSpringValve = '';
-        let springValveIndex = -1;
+        //get connected spring valve
+        let connectedSpringValve = connectedFuelPump ? newFuelPumps[fuelPumpIndex].connectedSpringValve : '';
+        let springValveIndex = newSpringValves.findIndex(valve => valve.id === connectedSpringValve);
         
         //get connected dump valve
         let connectedDumpValve = newToggleSwitches[toggleSwitchIndex].connectedDumpValve;
         let dumpValveIndex = newRotaryValves.findIndex(valve => valve.id === connectedDumpValve);
 
         //if no connected pump then continue as valve-only switch
-        if (connectedFuelPump) {
-            connectedSpringValve = newFuelPumps[fuelPumpIndex].connectedSpringValve;
-            springValveIndex = newSpringValves.findIndex(valve => valve.id === connectedSpringValve);
-        } else {
+        if (!connectedFuelPump) {
             newRotaryValves[dumpValveIndex] = {...newRotaryValves[dumpValveIndex], fuelPresent: !newRotaryValves[dumpValveIndex].fuelPresent, open: !newRotaryValves[dumpValveIndex].open}
-            this.setState(prevState => {
+            this.setState( () => {
                 return {
                     toggleSwitches: newToggleSwitches,
                     rotaryValves: newRotaryValves,
@@ -1993,7 +758,7 @@ class App extends React.Component {
             
         }
 
-        this.setState(prevState => {
+        this.setState( () => {
             return {
                 toggleSwitches: newToggleSwitches,
                 fuelPumps: newFuelPumps,
@@ -2006,6 +771,8 @@ class App extends React.Component {
 
     handleRotarySwitch = (id) => {
         let stateTest = this.state.stateTestVal;
+        
+        //track state changes that will trigger pressure flucuations in the Manifold component
         let fluxCounter = this.state.systemPSI_fluxCounter;
         let crossfeed_manifold_2 = this.state.manifolds.find(manifold => manifold.id === 'crossfeed_line2');
         
@@ -2021,23 +788,15 @@ class App extends React.Component {
 
         //if targeted valve is not failed then toggle valve open/closed
         if (!this.state.rotaryValves[rotaryValveIndex].failed) {
-            if (id === 'crossfeed_primer_button') {
-                let crossfeedSwitchIndex = newRotarySwitches.findIndex(rotaryswitch => rotaryswitch.id === 'crossfeed_switch_separation');
-                let crossfeedSeparationIndex = newRotaryValves.findIndex(valve => valve.id === 'crossfeed_separation_valve');
-                if (!newRotarySwitches[crossfeedSwitchIndex].switchedOn) {
-                    newRotaryValves[crossfeedSeparationIndex] = {...newRotaryValves[crossfeedSeparationIndex], open: !newRotaryValves[crossfeedSeparationIndex].open};
-                }
-                newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], open: !newRotaryValves[rotaryValveIndex].open};
-            } else {
-                newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], open: !newRotaryValves[rotaryValveIndex].open};
-            }
+            newRotaryValves[rotaryValveIndex] = {...newRotaryValves[rotaryValveIndex], open: !newRotaryValves[rotaryValveIndex].open};
             
+            //increment pressure flucuation event counter
             if (newRotaryValves[rotaryValveIndex].open && crossfeed_manifold_2.fuelPresent) {
                 fluxCounter += 1;
             }
         }
 
-        this.setState( prevState => {
+        this.setState( () => {
             return {
                 rotarySwitches: newRotarySwitches,
                 rotaryValves: newRotaryValves,
@@ -2062,7 +821,7 @@ class App extends React.Component {
         }
 
         newQuantityIndicators[quantityIndicatorIndex] = {...newQuantityIndicators[quantityIndicatorIndex], quantity: tankQuantity};
-        this.setState(prevState => {
+        this.setState( () => {
             return {
                 quantityIndicators: newQuantityIndicators,
                 stateTestVal: stateTest + 1
@@ -2075,41 +834,22 @@ class App extends React.Component {
         let stateTest = this.state.stateTestVal;
         let newToggleSwitches = [...this.state.toggleSwitches];
         let newRotaryValves = [...this.state.rotaryValves];
-        let newLeftGuardVisibility = !this.state.leftGuardVisible;
         let newRightGuardVisibility = !this.state.rightGuardVisible;
-        if (e.currentTarget.id.indexOf('left') > -1) {
-            let dumpSwitchIndex = newToggleSwitches.findIndex(toggleSwitch => toggleSwitch.id === 'left_dump_valveSwitch');
-            let connectedDumpValve = newToggleSwitches[dumpSwitchIndex].connectedDumpValve;
-            let dumpValveIndex = newRotaryValves.findIndex(valve => valve.id === connectedDumpValve);
-            if (newLeftGuardVisibility) {
-                newToggleSwitches[dumpSwitchIndex].switchedOn = false;
-                newRotaryValves[dumpValveIndex].open = false;
-            }
-            this.setState((state) => {
-                return { 
-                    leftGuardVisible: newLeftGuardVisibility,
-                    toggleSwitches: newToggleSwitches,
-                    rotaryValves: newRotaryValves,
-                    stateTestVal: stateTest + 1
-                };
-            })
-        } else if (e.currentTarget.id.indexOf('right') > -1) {
-            let dumpSwitchIndex = newToggleSwitches.findIndex(toggleSwitch => toggleSwitch.id === 'right_dump_valveSwitch');
-            let connectedDumpValve = newToggleSwitches[dumpSwitchIndex].connectedDumpValve;
-            let dumpValveIndex = newRotaryValves.findIndex(valve => valve.id === connectedDumpValve);
-            if (newRightGuardVisibility) {
-                newToggleSwitches[dumpSwitchIndex].switchedOn = false;
-                newRotaryValves[dumpValveIndex].open = false;
-            }
-            this.setState((state) => {
-                return {
-                    rightGuardVisible: newRightGuardVisibility,
-                    toggleSwitches: newToggleSwitches,
-                    rotaryValves: newRotaryValves,
-                    stateTestVal: stateTest + 1
-                };
-            })
+        let dumpSwitchIndex = newToggleSwitches.findIndex(toggleSwitch => toggleSwitch.id === 'right_dump_valveSwitch');
+        let connectedDumpValve = newToggleSwitches[dumpSwitchIndex].connectedDumpValve;
+        let dumpValveIndex = newRotaryValves.findIndex(valve => valve.id === connectedDumpValve);
+        if (newRightGuardVisibility) {
+            newToggleSwitches[dumpSwitchIndex].switchedOn = false;
+            newRotaryValves[dumpValveIndex].open = false;
         }
+        this.setState( () => {
+            return {
+                rightGuardVisible: newRightGuardVisibility,
+                toggleSwitches: newToggleSwitches,
+                rotaryValves: newRotaryValves,
+                stateTestVal: stateTest + 1
+            };
+        })
     }
 
     /* 
@@ -2142,7 +882,7 @@ class App extends React.Component {
         let rotationIncrement = indicator.maxQuantity === 70000 ? .468 : indicator.maxQuantity === 7000 ? 4.68 : indicator.maxQuantity === 9000 ? 3.5 : 3.2;
         let newQuantity = (rotationDeg / rotationIncrement * 100).toFixed(2);
         newQuantityIndicators[indicatorIndex].quantity = newQuantity;
-        this.setState(prevState => {
+        this.setState( () => {
             return {
                 quantityIndicators: newQuantityIndicators
             };
@@ -2151,25 +891,17 @@ class App extends React.Component {
 
     fuelDumping() {
         let dumpingStatuses = {
-            tank_1: false,
-            tank_2: false,
             tank_3: false,
             tank_4: false,
-            left_AUX: false,
-            left_EXT: false,
             right_AUX: false,
             right_EXT: false
         }
         let newQuantityIndicators = this.state.quantityIndicators;
         let stateTest = this.state.stateTestVal;
 
-        if (this.state.manifolds.find(manifold => manifold.id === 'left_dump_line').fuelPresent || this.state.manifolds.find(manifold => manifold.id === 'right_dump_line').fuelPresent) {
-            dumpingStatuses.tank_1 = this.state.fuelPumps.find(pump => pump.id === 'pump_1_dump').fuelPresent && this.state.rotaryValves.find(valve => valve.id === 'tank_1_dump_valve').open;
-            dumpingStatuses.tank_2 = this.state.fuelPumps.find(pump => pump.id === 'pump_2_dump').fuelPresent && this.state.rotaryValves.find(valve => valve.id === 'tank_2_dump_valve').open;
+        if (this.state.manifolds.find(manifold => manifold.id === 'right_dump_line').fuelPresent) {
             dumpingStatuses.tank_3 = this.state.fuelPumps.find(pump => pump.id === 'pump_3_dump').fuelPresent && this.state.rotaryValves.find(valve => valve.id === 'tank_3_dump_valve').open;
             dumpingStatuses.tank_4 = this.state.fuelPumps.find(pump => pump.id === 'pump_4_dump').fuelPresent && this.state.rotaryValves.find(valve => valve.id === 'tank_4_dump_valve').open;
-            dumpingStatuses.left_AUX = this.state.fuelPumps.find(pump => pump.id === 'pump_left_AUX').fuelPresent && this.state.rotaryValves.find(valve => valve.id === 'left_AUX_dump_valve').open;
-            dumpingStatuses.left_EXT = this.state.fuelPumps.find(pump => pump.id === 'pump_left_EXT_AFT').fuelPresent && this.state.rotaryValves.find(valve => valve.id === 'left_EXT_dump_valve').open;
             dumpingStatuses.right_AUX = this.state.fuelPumps.find(pump => pump.id === 'pump_right_AUX').fuelPresent && this.state.rotaryValves.find(valve => valve.id === 'right_AUX_dump_valve').open;
             dumpingStatuses.right_EXT = this.state.fuelPumps.find(pump => pump.id === 'pump_right_EXT_AFT').fuelPresent && this.state.rotaryValves.find(valve => valve.id === 'right_EXT_dump_valve').open;
         }
@@ -2184,6 +916,7 @@ class App extends React.Component {
                 newQuantityIndicators[indicatorIndex].dumping = 'has stopped';
             }
         }
+
         this.setState((prevState) => {
             if (prevState.quantityIndicators !== this.state.quantityIndicators) {
                 return {
@@ -2192,8 +925,6 @@ class App extends React.Component {
                 };
             }
         })
-
-
     }
 
     componentDidUpdate (prevProps, prevState) {
@@ -2210,35 +941,16 @@ class App extends React.Component {
             REFUEL LINE SPRING VALVES FUEL PRESENCE
             ---------------------------------- */
             let refuelManifoldIndex = newManifolds.findIndex(manifold => manifold.id === 'refuel_line');
-
-            let leftRefuelSpringValveIndex = newSpringValves.findIndex(spring => spring.id === 'left_refuel_manifold_springValve');
-            newSpringValves[leftRefuelSpringValveIndex].fuelPresent = newManifolds[refuelManifoldIndex].fuelPresent;
-            
             let rightRefuelSpringValveIndex = newSpringValves.findIndex(spring => spring.id === 'right_refuel_manifold_springValve');
             newSpringValves[rightRefuelSpringValveIndex].fuelPresent = newManifolds[refuelManifoldIndex].fuelPresent;
 
             //Target relevant manifolds, pumps, and valves
             let crossfeed_left_manifold = newManifolds.find(line => line.id === 'crossfeed_line1');
             let crossfeed_right_manifold = newManifolds.find(line => line.id === 'crossfeed_line2');
-
-            let tank_1_Pump = newFuelPumps.find(pump => pump.id === 'pump_1_boost');
-            let tank_2_Pump = newFuelPumps.find(pump => pump.id === 'pump_2_boost');
             let tank_3_Pump = newFuelPumps.find(pump => pump.id === 'pump_3_boost');
             let tank_4_Pump = newFuelPumps.find(pump => pump.id === 'pump_4_boost');
-
-            let tank_1_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_1_valve');
-            let tank_2_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_2_valve');
             let tank_3_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_3_valve');
             let tank_4_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_4_valve');
-
-            let left_AUX_Pump = newFuelPumps.find(pump => pump.id === 'pump_left_AUX');
-            let left_EXT_Pumps = newFuelPumps.filter((pump) => {
-                return pump.id.indexOf('left_EXT') > -1;
-            });
-            let left_AUX_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_left_AUX_valve');
-            let left_EXT_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_left_EXT_valve');
-            let left_BypassValve = newRotaryValves.find(valve => valve.id === 'left_bypass_valve');
-
             let right_AUX_Pump = newFuelPumps.find(pump => pump.id === 'pump_right_AUX');
             let right_EXT_Pumps = newFuelPumps.filter((pump) => {
                 return pump.id.indexOf('right_EXT') > -1;
@@ -2246,17 +958,12 @@ class App extends React.Component {
             let right_AUX_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_right_AUX_valve');
             let right_EXT_CrossfeedValve = newRotaryValves.find(valve => valve.id === 'crossfeed_right_EXT_valve');
             let right_BypassValve = newRotaryValves.find(valve => valve.id === 'right_bypass_valve');
-
             let crossfeed_SeparationValve = newRotaryValves.find(valve => valve.id === 'crossfeed_separation_valve');
-
             let dump_Pumps = newFuelPumps.filter((pump) => {
                 return pump.id.indexOf('dump') > -1;
             });
 
             //Check status of external pumps and dump pumps
-            let left_EXT_Pump_ON = left_EXT_Pumps.some((pump) => {
-                return pump.fuelPresent;
-            });
             let right_EXT_Pump_ON = right_EXT_Pumps.some((pump) => {
                 return pump.fuelPresent;
             });
@@ -2265,29 +972,8 @@ class App extends React.Component {
             });
 
             //Check if crossfeed manifolds are pump fed
-            let crossfeed_line1_pumpfed = (tank_1_Pump.fuelPresent && tank_1_CrossfeedValve.open) || 
-            (tank_2_Pump.fuelPresent && tank_2_CrossfeedValve.open) || 
-            (tank_3_Pump.fuelPresent && tank_3_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
-            (tank_4_Pump.fuelPresent && tank_4_CrossfeedValve.open && crossfeed_SeparationValve.open) ||
-            (right_AUX_Pump.fuelPresent && right_AUX_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
-            (right_AUX_Pump.fuelPresent && right_BypassValve.open && right_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
-            (right_EXT_Pump_ON && right_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
-            (right_EXT_Pump_ON && right_AUX_CrossfeedValve.open && right_BypassValve.open && crossfeed_SeparationValve.open) || 
-            (left_AUX_Pump.fuelPresent && left_AUX_CrossfeedValve.open) || 
-            (left_AUX_Pump.fuelPresent && left_BypassValve.open && left_EXT_CrossfeedValve.open) || 
-            (left_EXT_Pump_ON && left_EXT_CrossfeedValve.open) || 
-            (left_EXT_Pump_ON && left_AUX_CrossfeedValve.open && left_BypassValve.open) ||
-            (any_dump_Pumps_ON && (left_EXT_CrossfeedValve.open || 
-            (left_BypassValve.open && left_AUX_CrossfeedValve.open)));
-            
             let crossfeed_line2_pumpfed = (tank_3_Pump.fuelPresent && tank_3_CrossfeedValve.open) || 
             (tank_4_Pump.fuelPresent && tank_4_CrossfeedValve.open) || 
-            (tank_1_Pump.fuelPresent && tank_1_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
-            (tank_2_Pump.fuelPresent && tank_2_CrossfeedValve.open && crossfeed_SeparationValve.open) ||
-            (left_AUX_Pump.fuelPresent && left_AUX_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
-            (left_AUX_Pump.fuelPresent && left_BypassValve.open && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
-            (left_EXT_Pump_ON && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || 
-            (left_EXT_Pump_ON && left_AUX_CrossfeedValve.open && left_BypassValve.open && crossfeed_SeparationValve.open) || 
             (right_AUX_Pump.fuelPresent && right_AUX_CrossfeedValve.open) || 
             (right_AUX_Pump.fuelPresent && right_BypassValve.open && right_EXT_CrossfeedValve.open) || 
             (right_EXT_Pump_ON && right_EXT_CrossfeedValve.open) || 
@@ -2337,13 +1023,7 @@ class App extends React.Component {
                         manifold.fuelTrapped = fueltrapped;
                     }
 
-                    if (manifold.id === 'crossfeed_line1') {
-                        if (fueltrapped) {
-                            fuelpresent = true;
-                        } else if (!fueltrapped && !crossfeed_line1_pumpfed){
-                            fuelpresent = false;
-                        }
-                    } else if (manifold.id === 'crossfeed_line2') {
+                    if (manifold.id === 'crossfeed_line2') {
                         if (fueltrapped) {
                             fuelpresent = true;
                         } else if (!fueltrapped && !crossfeed_line2_pumpfed){
@@ -2362,7 +1042,7 @@ class App extends React.Component {
 
                     //Determine PSI to be displayed on Pressure Indicator
                     if (manifold.id === 'crossfeed_line2' && manifold.fuelPresent) {
-                        if ((left_AUX_Pump.fuelPresent && left_AUX_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_AUX_Pump.fuelPresent && left_BypassValve.open && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_EXT_Pump_ON && left_EXT_CrossfeedValve.open && crossfeed_SeparationValve.open) || (left_EXT_Pump_ON && left_AUX_CrossfeedValve.open && left_BypassValve.open && crossfeed_SeparationValve.open) || (right_AUX_Pump.fuelPresent && right_AUX_CrossfeedValve.open) || (right_AUX_Pump.fuelPresent && right_BypassValve.open && right_EXT_CrossfeedValve.open) || (right_EXT_Pump_ON && right_EXT_CrossfeedValve.open) || (right_EXT_Pump_ON && right_AUX_CrossfeedValve.open && right_BypassValve.open)) {
+                        if ((right_AUX_Pump.fuelPresent && right_AUX_CrossfeedValve.open) || (right_AUX_Pump.fuelPresent && right_BypassValve.open && right_EXT_CrossfeedValve.open) || (right_EXT_Pump_ON && right_EXT_CrossfeedValve.open) || (right_EXT_Pump_ON && right_AUX_CrossfeedValve.open && right_BypassValve.open)) {
                             newSystemPSI= 35;
                         } else {
                             newSystemPSI = 19;
@@ -2388,7 +1068,6 @@ class App extends React.Component {
 
                         if (
                             (valve.id === "crossfeed_separation_valve" && newManifolds[manifoldindex].fuelPresent) || 
-                            (fuelsource.indexOf('crossfeed_line1') > -1 && crossfeed_line1_pumpfed) || 
                             (fuelsource.indexOf('crossfeed_line2') > -1 && crossfeed_line2_pumpfed) ||
                             (fuelsource.indexOf('crossfeed') < 0 && newManifolds[manifoldindex].fuelPresent)
                         ) {
@@ -2403,7 +1082,7 @@ class App extends React.Component {
                 });
             
 
-            this.setState(prevState => {
+            this.setState( () => {
                 return {
                     manifolds: newManifolds,
                     rotaryValves: newRotaryValves,
@@ -2415,13 +1094,13 @@ class App extends React.Component {
                 this.fuelDumping();
             });
         } else {
-            console.log('state is stablizied');
+            console.log('state has stablizied');
         }
     }
     
     render() {
         return (
-            <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 728.82 529.36">
+            <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="270 0 500 600">
                 <defs>
                     <radialGradient id="radial-gradient" cx="680.9" cy="397.24" r="24.03" gradientUnits="userSpaceOnUse">
                       <stop offset="0" stopColor="#5e5e5e"/>
@@ -2709,60 +1388,18 @@ class App extends React.Component {
                 -----------------/////////////////////------------------------------*/}
 
                 <g id="panel">
-                    <rect id="back2" y="306.16" width="728.82" height="223.2" fill="#909090"/>
-                    <path id="back1" d="M115.24,324.19H688.17a2.72,2.72,0,0,1,2.73,2.72v41.67a2.75,2.75,0,0,1-2.73,2.75H658.58a2.72,2.72,0,0,0-2.72,2.72V418.7a2.72,2.72,0,0,0,2.72,2.72h59.78a2.74,2.74,0,0,1,2.72,2.75v8.13h0a5,5,0,0,0,4.68,5h2.38a2.27,2.27,0,0,1,2.27,2.27v84.53a2.27,2.27,0,0,1-2.27,2.27h-2.38a4.61,4.61,0,0,0-4.68,4.5v9.67H16.73v-9.67a4.59,4.59,0,0,0-4.65-4.5H9.7a2.27,2.27,0,0,1-2.27-2.27V439.5a2.26,2.26,0,0,1,2.27-2.24h2.38a5,5,0,0,0,4.65-5v-8.13a2.77,2.77,0,0,1,2.75-2.75H79.26A2.72,2.72,0,0,0,82,418.7V374.05a2.72,2.72,0,0,0-2.72-2.72H49.67a2.77,2.77,0,0,1-2.75-2.75V326.91a2.75,2.75,0,0,1,2.75-2.72ZM26.57,482H44.79a1.14,1.14,0,0,1,1.14,1.14v18.23a1.14,1.14,0,0,1-1.14,1.13H26.57a1.14,1.14,0,0,1-1.14-1.13V483.13A1.14,1.14,0,0,1,26.57,482Zm666.48,0h18.23a1.14,1.14,0,0,1,1.13,1.14v18.23a1.14,1.14,0,0,1-1.13,1.13H693.05a1.14,1.14,0,0,1-1.13-1.13V483.13a1.14,1.14,0,0,1,1.13-1.14Zm-76.88,0h18.2a1.14,1.14,0,0,1,1.16,1.14v18.23a1.14,1.14,0,0,1-1.16,1.13h-18.2a1.16,1.16,0,0,1-1.16-1.13V483.13a1.16,1.16,0,0,1,1.16-1.14Zm-512.73,0h18.23a1.14,1.14,0,0,1,1.13,1.14v18.23a1.14,1.14,0,0,1-1.13,1.13H103.44a1.14,1.14,0,0,1-1.13-1.13V483.13a1.14,1.14,0,0,1,1.13-1.14Zm131.33-71.71H253a1.14,1.14,0,0,1,1.13,1.13v18.2a1.14,1.14,0,0,1-1.13,1.16H234.77a1.14,1.14,0,0,1-1.13-1.16v-18.2a1.14,1.14,0,0,1,1.13-1.13Zm250.07,0h18.23a1.14,1.14,0,0,1,1.14,1.13v18.2a1.14,1.14,0,0,1-1.14,1.16H484.84a1.14,1.14,0,0,1-1.13-1.16v-18.2a1.14,1.14,0,0,1,1.13-1.13Zm-81.66,0h18.23a1.14,1.14,0,0,1,1.13,1.13v18.2a1.14,1.14,0,0,1-1.13,1.16H403.18a1.14,1.14,0,0,1-1.14-1.16v-18.2a1.14,1.14,0,0,1,1.14-1.13Zm-86.74,0h18.23a1.14,1.14,0,0,1,1.13,1.13v18.2a1.14,1.14,0,0,1-1.13,1.16H316.44a1.14,1.14,0,0,1-1.14-1.16v-18.2a1.14,1.14,0,0,1,1.14-1.13Zm-167-75.52A8.55,8.55,0,1,1,141,343.3a8.53,8.53,0,0,1,8.53-8.54Zm71.77,0a8.55,8.55,0,1,1-8.53,8.54,8.55,8.55,0,0,1,8.53-8.54Zm60.92,0a8.55,8.55,0,1,1-8.53,8.54,8.55,8.55,0,0,1,8.53-8.54Zm173.51,0a8.55,8.55,0,1,1-8.56,8.54,8.55,8.55,0,0,1,8.56-8.54Zm60.88,0A8.55,8.55,0,1,1,508,343.3a8.53,8.53,0,0,1,8.53-8.54Zm71.78,0a8.55,8.55,0,1,1-8.53,8.54,8.55,8.55,0,0,1,8.53-8.54Zm42.38,0a8.55,8.55,0,1,1-8.57,8.54,8.55,8.55,0,0,1,8.57-8.54Zm-523.59,0a8.55,8.55,0,1,1-8.53,8.54,8.55,8.55,0,0,1,8.53-8.54Zm196.64,102.9a8.54,8.54,0,1,1-8.56,8.53,8.54,8.54,0,0,1,8.56-8.53Zm130.31,0a8.54,8.54,0,1,1-8.54,8.53,8.54,8.54,0,0,1,8.54-8.53Zm43.17,0a8.54,8.54,0,1,1-8.53,8.53,8.55,8.55,0,0,1,8.53-8.53Zm-216.68,0a8.54,8.54,0,1,1-8.53,8.53,8.55,8.55,0,0,1,8.53-8.53ZM133.83,454.53a8.55,8.55,0,1,1-8.56,8.56,8.54,8.54,0,0,1,8.56-8.56Zm71.92,0a8.55,8.55,0,1,1-8.54,8.56,8.54,8.54,0,0,1,8.54-8.56Zm326.49,0a8.55,8.55,0,1,1-8.53,8.56,8.54,8.54,0,0,1,8.53-8.56Zm71.77,0a8.55,8.55,0,1,1-8.53,8.56,8.55,8.55,0,0,1,8.53-8.56Zm76.88,0a8.55,8.55,0,1,1-8.53,8.56,8.55,8.55,0,0,1,8.53-8.56Zm-624,0a8.55,8.55,0,1,1-8.54,8.56,8.55,8.55,0,0,1,8.54-8.56ZM346.6,349.11h44.64a2.72,2.72,0,0,1,2.73,2.72v116.5a2.75,2.75,0,0,1-2.73,2.75H346.6a2.75,2.75,0,0,1-2.72-2.75V351.83a2.72,2.72,0,0,1,2.72-2.72ZM111.49,371.33h44.65a2.72,2.72,0,0,1,2.72,2.72V418.7a2.72,2.72,0,0,1-2.72,2.72H111.49a2.72,2.72,0,0,1-2.72-2.72V374.05a2.72,2.72,0,0,1,2.72-2.72Zm71.78,0h44.64a2.75,2.75,0,0,1,2.75,2.72V418.7a2.75,2.75,0,0,1-2.75,2.72H183.27a2.72,2.72,0,0,1-2.72-2.72V374.05a2.72,2.72,0,0,1,2.72-2.72Zm76.59,0h44.62a2.75,2.75,0,0,1,2.75,2.72V418.7a2.75,2.75,0,0,1-2.75,2.72H259.86a2.75,2.75,0,0,1-2.75-2.72V374.05a2.75,2.75,0,0,1,2.75-2.72Zm321.84,0h44.62a2.75,2.75,0,0,1,2.75,2.72V418.7a2.75,2.75,0,0,1-2.75,2.72H581.7A2.75,2.75,0,0,1,579,418.7V374.05a2.75,2.75,0,0,1,2.75-2.72Zm-71.77,0h44.62a2.75,2.75,0,0,1,2.75,2.72V418.7a2.75,2.75,0,0,1-2.75,2.72H509.93a2.75,2.75,0,0,1-2.75-2.72V374.05a2.75,2.75,0,0,1,2.75-2.72Zm-76.59,0H478a2.74,2.74,0,0,1,2.75,2.72V418.7a2.74,2.74,0,0,1-2.75,2.72H433.34a2.72,2.72,0,0,1-2.72-2.72V374.05a2.72,2.72,0,0,1,2.72-2.72Z" transform="translate(-4.51 -14.6)" fill="#2e2e2e" stroke="#424242" strokeMiterlimit="10" fillRule="evenodd"/>
+                    <rect id="back2" className="cls-1" x="327.44" y="306.16" width="402.61" height="223.2" />
+                    <path id="back1" className="cls-2" d="M335.43,324.19H688.17a2.72,2.72,0,0,1,2.73,2.72v41.67a2.75,2.75,0,0,1-2.73,2.75H658.58a2.72,2.72,0,0,0-2.72,2.72V418.7a2.72,2.72,0,0,0,2.72,2.72h59.78a2.74,2.74,0,0,1,2.72,2.75v8.13h0a5,5,0,0,0,4.68,5h2.38a2.27,2.27,0,0,1,2.27,2.27v84.53a2.27,2.27,0,0,1-2.27,2.27h-2.38a4.61,4.61,0,0,0-4.68,4.5v9.67H335.43M693.05,482h18.23a1.14,1.14,0,0,1,1.13,1.14v18.23a1.14,1.14,0,0,1-1.13,1.13H693.05a1.14,1.14,0,0,1-1.13-1.13V483.13a1.14,1.14,0,0,1,1.13-1.14Zm-76.88,0h18.2a1.14,1.14,0,0,1,1.16,1.14v18.23a1.14,1.14,0,0,1-1.16,1.13h-18.2a1.16,1.16,0,0,1-1.16-1.13V483.13a1.16,1.16,0,0,1,1.16-1.14ZM484.84,410.28h18.23a1.14,1.14,0,0,1,1.14,1.13v18.2a1.14,1.14,0,0,1-1.14,1.16H484.84a1.14,1.14,0,0,1-1.13-1.16v-18.2a1.14,1.14,0,0,1,1.13-1.13Zm-81.66,0h18.23a1.14,1.14,0,0,1,1.13,1.13v18.2a1.14,1.14,0,0,1-1.13,1.16H403.18a1.14,1.14,0,0,1-1.14-1.16v-18.2a1.14,1.14,0,0,1,1.14-1.13ZM346.6,349.11h44.64a2.72,2.72,0,0,1,2.73,2.72v116.5a2.75,2.75,0,0,1-2.73,2.75H346.6a2.75,2.75,0,0,1-2.72-2.75V351.83a2.72,2.72,0,0,1,2.72-2.72Zm235.1,22.22h44.62a2.75,2.75,0,0,1,2.75,2.72V418.7a2.75,2.75,0,0,1-2.75,2.72H581.7A2.75,2.75,0,0,1,579,418.7V374.05a2.75,2.75,0,0,1,2.75-2.72Zm-71.77,0h44.62a2.75,2.75,0,0,1,2.75,2.72V418.7a2.75,2.75,0,0,1-2.75,2.72H509.93a2.75,2.75,0,0,1-2.75-2.72V374.05a2.75,2.75,0,0,1,2.75-2.72Zm-76.59,0H478a2.74,2.74,0,0,1,2.75,2.72V418.7a2.74,2.74,0,0,1-2.75,2.72H433.34a2.72,2.72,0,0,1-2.72-2.72V374.05a2.72,2.72,0,0,1,2.72-2.72Z" transform="translate(-4.6 -14.6)" />
 
-                    <path id="red_lines" d="M657.33,345.19H639a8.29,8.29,0,0,0,.23-1.89,8.52,8.52,0,0,0-.23-1.9h18.31v-3l9.84,4.91-9.84,4.93Zm-24.74,6.44v11h14.57l9.89,9.15a2.78,2.78,0,0,0-1.19,2.27v1.79l-10.23-9.41H628.82v-14.8a8.31,8.31,0,0,0,1.9.23,8.18,8.18,0,0,0,1.87-.23Zm50.2,69.79v33.33a8.45,8.45,0,0,0-1.9-.22,8.58,8.58,0,0,0-1.9.22V421.42Zm-60.41-76.23H596.67a8.29,8.29,0,0,0,.23-1.89,8.52,8.52,0,0,0-.23-1.9h25.71a8.52,8.52,0,0,0-.23,1.9,8.29,8.29,0,0,0,.23,1.89Zm-32.14,6.44v11h15.67v8.7h-3.8v-4.9H586.47v-14.8a8.11,8.11,0,0,0,1.87.23,8.45,8.45,0,0,0,1.9-.23Zm15.67,69.79v33.33a8.51,8.51,0,0,0-1.9-.22,8.65,8.65,0,0,0-1.9.22V421.42ZM580,345.19H524.9a8.3,8.3,0,0,0,.2-1.89,8.51,8.51,0,0,0-.2-1.9H580a10.73,10.73,0,0,0-.19,1.9,10.44,10.44,0,0,0,.19,1.89Zm-61.54,6.44v11h15.68v8.7h-3.8v-4.9H514.69v-14.8a8.18,8.18,0,0,0,1.87.23,8.31,8.31,0,0,0,1.9-.23Zm15.68,69.79v33.33a8.31,8.31,0,0,0-3.8,0V421.42Zm-25.91-76.23H464a8.29,8.29,0,0,0,.23-1.89,8.52,8.52,0,0,0-.23-1.9h44.25a8.51,8.51,0,0,0-.2,1.9,8.3,8.3,0,0,0,.2,1.89Zm-50.65,6.44v19.7h-3.8v-19.7a8.31,8.31,0,0,0,1.9.23,8.66,8.66,0,0,0,1.9-.23Zm0,69.79v10.8h21.57v5.64a8.45,8.45,0,0,0-1.9-.2,8.57,8.57,0,0,0-1.9.2V436H436v1.84a8.64,8.64,0,0,0-1.9-.2,8.51,8.51,0,0,0-1.9.2v-5.64h21.6v-10.8ZM436,454.53v1.87h39.37v-1.87a8.57,8.57,0,0,0,1.9.2,8.45,8.45,0,0,0,1.9-.2v5.67H457.58v20.38h72.76v-9.16a9.13,9.13,0,0,0,3.8,0v59.3h41.21V480.58h26.76v-9.16a10.93,10.93,0,0,0,1.9.2,10.73,10.73,0,0,0,1.9-.2v18.91h9.36v3.8h-9.36V502h6v15.93H596V502h6.15V484.38h-23v46.34h73.19V502h-.11V480.58H679v-9.16a10.83,10.83,0,0,0,1.9.2,10.63,10.63,0,0,0,1.9-.2v18.91h9.35v3.8h-9.35V502h6v15.93h-16V502H679V484.38H656V502h.11v32.57H395.75v-1.9l-.11-48.27H370.86l-.05,48.27v1.9h-289V484.38h-23V502H65v15.93H49.05V502h6v-7.88H45.67v-3.8H55V471.42a9.13,9.13,0,0,0,3.8,0v9.16H85.61v50.14h73.08V484.38h-23V502h6.18v15.93h-16V502h6v-7.88h-9.35v-3.8h9.35V471.42a10.63,10.63,0,0,0,1.9.2,10.2,10.2,0,0,0,1.87-.2v9.16h26.79v50.14H203.7V471.36a8.17,8.17,0,0,0,2.05.26,8.65,8.65,0,0,0,1.72-.17v9.13h72.8V460.2h-21.6v-5.67a8.57,8.57,0,0,0,1.9.2,8.45,8.45,0,0,0,1.9-.2v1.87h39.4v-1.87a8.39,8.39,0,0,0,1.9.2,8.64,8.64,0,0,0,1.9-.2v5.67h-21.6v70.52h83l.08-59.64h3.77v9.5h28.52v1.9l.11,48.24h54.26V460.2h-21.6v-5.67a8.51,8.51,0,0,0,1.9.2,8.64,8.64,0,0,0,1.9-.2ZM301.87,437.86V436h-39.4v1.84a8.45,8.45,0,0,0-1.9-.2,8.57,8.57,0,0,0-1.9.2v-5.64h21.6v-10.8h3.8v10.8h21.6v5.64a8.64,8.64,0,0,0-1.9-.2,8.39,8.39,0,0,0-1.9.2Zm-21.6-66.53v-19.7a8,8,0,0,0,3.8,0v19.7Zm-6.44-26.14H229.58a7.77,7.77,0,0,0,.23-1.89,8,8,0,0,0-.23-1.9h44.25a8.51,8.51,0,0,0-.19,1.9,8.3,8.3,0,0,0,.19,1.89Zm-50.68,6.44v14.8H207.47v4.9H203.7v-8.7h15.68v-11a8.18,8.18,0,0,0,1.87.23,8.59,8.59,0,0,0,1.9-.23Zm-15.68,69.79v33.31a7.94,7.94,0,0,0-1.72-.2,8.16,8.16,0,0,0-2.05.25V421.42Zm5.45-76.23H157.81a8.3,8.3,0,0,0,.2-1.89,8.51,8.51,0,0,0-.2-1.9h55.11a9.87,9.87,0,0,0-.2,1.9,9.6,9.6,0,0,0,.2,1.89Zm-61.54,6.44v14.8H135.7v4.9h-3.77v-8.7h15.65v-11a8,8,0,0,0,3.8,0ZM135.7,421.42v33.33a8.12,8.12,0,0,0-1.87-.22,8.45,8.45,0,0,0-1.9.22V421.42Zm5.44-76.23H115.46a8.3,8.3,0,0,0,.2-1.89,8.51,8.51,0,0,0-.2-1.9h25.68a8.51,8.51,0,0,0-.19,1.9,8.3,8.3,0,0,0,.19,1.89ZM109,351.63v14.8H92.19L82,375.84v-1.79a2.75,2.75,0,0,0-1.21-2.27l9.92-9.15h14.54v-11a8,8,0,0,0,3.8,0Zm-50.2,69.79v33.33a8.31,8.31,0,0,0-3.8,0V421.42Zm40-76.23H80.74v3L70.9,343.3l9.84-4.91v3H98.79a8.51,8.51,0,0,0-.19,1.9,8.3,8.3,0,0,0,.19,1.89ZM207.47,530.72h72.8V484.38h-72.8Zm322.87,0V484.38H457.58v46.34Z" transform="translate(-4.51 -14.6)" fill="#c00000" stroke="#fff" strokeMiterlimit="10" strokeWidth="0.5"/>
-
-                    <path d="M286.7,336.07l6.38-6.35.54-.54h150.6l.54.54,6.35,6.35a8.65,8.65,0,0,0-2.66,2.69h0L442.64,333H295.21l-5.81,5.78a8.36,8.36,0,0,0-2.7-2.69Z" transform="translate(-4.51 -14.6)" fill="#c00"/>
-                    
-                    <path d="M286.5,336l6.41-6.4.54-.54.08-.09H444.31l.06.09.56.54,6.41,6.4-.43.26-6.32-6.32-.48-.48H293.73l-.51.48-6.29,6.32-.43-.26Zm161.81,3-5.76-5.76H295.29L289.54,339a3.35,3.35,0,0,0-.29-.4l5.79-5.75,0-.09H442.75l.06.09,5.75,5.75c0,.06-.06.09-.08.14h0c0,.06-.09.12-.12.17v0Z" transform="translate(-4.51 -14.6)" fill="#fefefe"/>	
+                    <path id="red_lines" className="cls-46" d="M657.33,345.19H639a8.29,8.29,0,0,0,.23-1.89,8.52,8.52,0,0,0-.23-1.9h18.31v-3l9.84,4.91-9.84,4.93Zm-24.74,6.44v11h14.57l9.89,9.15a2.78,2.78,0,0,0-1.19,2.27v1.79l-10.23-9.41H628.82v-14.8a8.31,8.31,0,0,0,1.9.23,8.18,8.18,0,0,0,1.87-.23Zm50.2,69.79v33.33a8.45,8.45,0,0,0-1.9-.22,8.58,8.58,0,0,0-1.9.22V421.42Zm-60.41-76.23H596.67a8.29,8.29,0,0,0,.23-1.89,8.52,8.52,0,0,0-.23-1.9h25.71a8.52,8.52,0,0,0-.23,1.9,8.29,8.29,0,0,0,.23,1.89Zm-32.14,6.44v11h15.67v8.7h-3.8v-4.9H586.47v-14.8a8.11,8.11,0,0,0,1.87.23,8.45,8.45,0,0,0,1.9-.23Zm15.67,69.79v33.33a8.51,8.51,0,0,0-1.9-.22,8.65,8.65,0,0,0-1.9.22V421.42ZM580,345.19H524.9a8.3,8.3,0,0,0,.2-1.89,8.51,8.51,0,0,0-.2-1.9H580a10.73,10.73,0,0,0-.19,1.9,10.44,10.44,0,0,0,.19,1.89Zm-61.54,6.44v11h15.68v8.7h-3.8v-4.9H514.69v-14.8a8.18,8.18,0,0,0,1.87.23,8.31,8.31,0,0,0,1.9-.23Zm15.68,69.79v33.33a8.31,8.31,0,0,0-3.8,0V421.42Zm-25.91-76.23H464a8.29,8.29,0,0,0,.23-1.89,8.52,8.52,0,0,0-.23-1.9h44.25a8.51,8.51,0,0,0-.2,1.9,8.3,8.3,0,0,0,.2,1.89Zm-50.65,6.44v19.7h-3.8v-19.7a8.31,8.31,0,0,0,1.9.23,8.66,8.66,0,0,0,1.9-.23Zm0,69.79v10.8h21.57v5.64a8.45,8.45,0,0,0-1.9-.2,8.57,8.57,0,0,0-1.9.2V436H436v1.84a8.64,8.64,0,0,0-1.9-.2,8.51,8.51,0,0,0-1.9.2v-5.64h21.6v-10.8Zm-90.54,63,.08-13.31h3.77v9.5h28.52v1.9l.11,48.24h54.26V460.2h-21.6v-5.67a8.51,8.51,0,0,0,1.9.2,8.64,8.64,0,0,0,1.9-.2h0v1.87h39.37v-1.87a8.57,8.57,0,0,0,1.9.2,8.45,8.45,0,0,0,1.9-.2v5.67H457.58v20.38h72.76v-9.16a9.13,9.13,0,0,0,3.8,0v59.3h41.21V480.58h26.76v-9.16a10.93,10.93,0,0,0,1.9.2,10.73,10.73,0,0,0,1.9-.2v18.91h9.36v3.8h-9.36V502h6v15.93H596V502h6.15V484.38h-23v46.34h73.19V502h-.11V480.58H679v-9.16a10.83,10.83,0,0,0,1.9.2,10.63,10.63,0,0,0,1.9-.2v18.91h9.35v3.8h-9.35V502h6v15.93h-16V502H679V484.38H656V502h.11v32.57H395.75v-1.9l-.11-48.27Zm163.3,46.33V484.38H457.58v46.34Z" transform="translate(-7.28 -14.6)" />
 
 
                     <g id="labels">
-                        <text transform="translate(383.85 474.48)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">C</text>
-                        <text transform="translate(383.85 478.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">R</text>
-                        <text transform="translate(383.85 481.37)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">O</text>
-                        <text transform="translate(383.85 485.2)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">S</text>
-                        <text transform="translate(383.85 489.03)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">S</text>
-                        <text transform="translate(384.62 492.08)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">F</text>
-                        <text transform="translate(383.85 495.91)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">E</text>
-                        <text transform="translate(383.85 499.74)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">E</text>
-                        <text transform="translate(383.85 502.81)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">D</text>
-                        <text transform="translate(387.68 474.48)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">S</text>
-                        <text transform="translate(387.68 478.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">E</text>
-                        <text transform="translate(387.68 481.37)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">P</text>
-                        <text transform="translate(387.68 485.2)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">A</text>
-                        <text transform="translate(387.68 489.03)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">R</text>
-                        <text transform="translate(387.68 492.08)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">A</text>
-                        <text transform="translate(387.68 495.91)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">T</text>
-                        <text transform="translate(388.44 499.74)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">I</text>
-                        <text transform="translate(387.68 502.81)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">O</text>
-                        <text transform="translate(387.68 506.64)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">N</text>
-                        <text transform="translate(29 447.68)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">BOOST</text>
-                        <text transform="translate(31.3 451.51)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMP</text>
-                        <text transform="translate(412.92 433.15)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(414.44 440.04)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
+                        <text transform="translate(410 433.15)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
+                        <text transform="translate(410 440.04)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
                         <text transform="translate(483.28 433.15)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
                         <text transform="translate(483.28 440.04)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
-                        <text transform="translate(77.18 329.84)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="0.02em">OVERBD</text>
                         <text transform="translate(636.99 329.84)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="0.02em">OVERBD</text>
-                        <text transform="translate(48.89 492.08)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.07em">ENG</text>
-                        <text transform="translate(51.18 500.49)" fontSize="9.18" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">I</text>
-                        <text transform="translate(125.36 492.08)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.07em">ENG</text>
-                        <text transform="translate(126.89 500.49)" fontSize="9.18" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">2</text>
-                        <text transform="translate(86.36 374.22)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">NO.1</text>
-                        <text transform="translate(87.89 378.05)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.08em">IND</text>
-                        <text transform="translate(86.36 382.1)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">TEST</text>
-                        <text transform="translate(161.31 374.22)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">NO.2</text>
-                        <text transform="translate(162.07 378.05)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.08em">IND</text>
-                        <text transform="translate(160.54 382.1)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">TEST</text>
-                        <text transform="translate(235.5 361.2)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">AUX</text>
-                        <text transform="translate(236.25 365.03)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.08em">IND</text>
-                        <text transform="translate(234.72 369.1)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">TEST</text>
-                        <text transform="translate(317.32 361.2)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">EXT</text>
-                        <text transform="translate(318.08 365.03)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.08em">IND</text>
-                        <text transform="translate(316.56 369.1)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">TEST</text>
                         <text transform="translate(404.5 361.2)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">EXT</text>
                         <text transform="translate(405.27 365.03)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.08em">IND</text>
                         <text transform="translate(403.74 369.1)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">TEST</text>
@@ -2778,197 +1415,56 @@ class App extends React.Component {
                         <text transform="translate(532.98 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">AUX</text>
                         <text transform="translate(604.87 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">NO.3</text>
                         <text transform="translate(656.1 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">NO.4</text>
-                        <text transform="translate(441.21 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">EXT</text>
-                        <text transform="translate(266.85 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">EXT</text>
-                        <text transform="translate(189.6 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">AUX</text>
-                        <text transform="translate(116.96 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">NO.2</text>
-                        <text transform="translate(66.48 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">NO.1</text>
-                        <text transform="translate(45.07 316.04)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="0.08em">NORM</text>
-                        <text transform="translate(45.06 328.29)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
-                        <text transform="translate(45.06 333.67)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">VALVE</text>
-                        <text transform="translate(45.07 343.6)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OPEN</text>
-                        <text transform="translate(112.36 324.46)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(112.36 336.71)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
-                        <text transform="translate(289.02 328.29)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
-                        <text transform="translate(289.02 333.67)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMPS</text>
-                        <text transform="translate(62.66 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(62.66 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
-                        <text transform="translate(139.13 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(139.13 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
+                        <text transform="translate(436 354.31)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">EXT</text>
                         <text transform="translate(610.99 447.68)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">BOOST</text>
                         <text transform="translate(610.99 451.51)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMP</text>
-                        <text transform="translate(583.46 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(584.99 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
+                        <text transform="translate(580 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
+                        <text transform="translate(580 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
                         <text transform="translate(687.46 447.68)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">BOOST</text>
                         <text transform="translate(687.46 451.51)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMP</text>
-                        <text transform="translate(660.7 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(663 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
+                        <text transform="translate(658 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
+                        <text transform="translate(658 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
                         <text transform="translate(538.33 445.4)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">AUX</text>
                         <text transform="translate(538.33 449.23)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">TANK</text>
                         <text transform="translate(538.33 453.82)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMP</text>
-                        <text transform="translate(511.57 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(513.1 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
-                        <text transform="translate(448.1 429.32)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">EXT</text>
-                        <text transform="translate(446.57 433.89)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">TANK</text>
-                        <text transform="translate(445.03 438.21)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMPS</text>
+                        <text transform="translate(509 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
+                        <text transform="translate(509 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
+                        <text transform="translate(446 429.32)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">EXT</text>
+                        <text transform="translate(445 433.89)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">TANK</text>
+                        <text transform="translate(444 438.21)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMPS</text>
                         <text transform="translate(435.86 425.49)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">AFT</text>
-                        <text transform="translate(459.57 425.49)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">FWD</text>
-                        <text transform="translate(274.49 429.32)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">EXT</text>
-                        <text transform="translate(272.96 433.89)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">TANK</text>
-                        <text transform="translate(271.43 438.21)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.07em">PUMPS</text>
-                        <text transform="translate(286.73 425.49)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="0.08em">AFT</text>
-                        <text transform="translate(262.25 425.49)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">FWD</text>
-                        <text transform="translate(211.78 446.17)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(211.78 453.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
-                        <text transform="translate(139.89 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
-                        <text transform="translate(142.96 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">FEED</text>
-                        <text transform="translate(83.3 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
-                        <text transform="translate(83.3 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">FEED</text>
-                        <text transform="translate(205.66 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
-                        <text transform="translate(205.66 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">FEED</text>
-                        <text transform="translate(260.73 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
-                        <text transform="translate(264.55 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">FEED</text>
+                        <text transform="translate(456 425.49)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">FWD</text>
                         <text transform="translate(455.74 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
                         <text transform="translate(455.74 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FEED</text>
-                        <text transform="translate(511.57 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
-                        <text transform="translate(514.63 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FEED</text>
+                        <text transform="translate(508 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
+                        <text transform="translate(509 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FEED</text>
                         <text transform="translate(577.34 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
                         <text transform="translate(577.34 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FEED</text>
-                        <text transform="translate(633.93 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
-                        <text transform="translate(636.99 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FEED</text>
-                        <text transform="translate(231.67 490.56)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">BYPASS</text>
-                        <text transform="translate(301.26 466.06)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSSFEED PRIMER</text>
-                        <text transform="translate(305.85 492.84)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DEPRESS FULLY</text>
-                        <text transform="translate(315.03 496.67)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">30 SEC</text>
-                        <text transform="translate(217.14 518.88)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="0.08em">CROSSFEED MANIFOLD</text>
+                        <text transform="translate(630 510.45)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">CROSS</text>
+                        <text transform="translate(630 514.28)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FEED</text>
                         <text transform="translate(467.98 518.88)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="0.08em">CROSSFEED MANIFOLD</text>
-                        <text transform="translate(350.21 461.48)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.03em">MANF</text>
-                        <text transform="translate(369.32 461.48)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PRESS.</text>
+                        <text transform="translate(346 461.48)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.03em">MANF</text>
+                        <text transform="translate(367 461.48)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PRESS.</text>
                         <text transform="translate(482.51 490.56)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">BYPASS</text>
-                        <text transform="translate(155.19 324.46)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(155.19 336.71)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
-                        <text transform="translate(226.32 324.46)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(227.08 336.71)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
-                        <text transform="translate(260.73 324.46)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(256.9 336.71)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
                         <text transform="translate(427.44 328.29)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
                         <text transform="translate(424.39 333.67)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMPS</text>
-                        <text transform="translate(673.7 316.04)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">NORM</text>
-                        <text transform="translate(671.41 328.29)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
-                        <text transform="translate(669.87 333.67)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">VALVE</text>
-                        <text transform="translate(674.46 343.6)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OPEN</text>
+                        <text transform="translate(670 316.04)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">NORM</text>
+                        <text transform="translate(669 328.29)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
+                        <text transform="translate(667 333.67)" fontSize="4.59" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">VALVE</text>
+                        <text transform="translate(670 343.6)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OPEN</text>
                         <text transform="translate(495.51 324.46)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
                         <text transform="translate(492.45 336.71)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
                         <text transform="translate(567.39 324.46)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
                         <text transform="translate(563.57 336.71)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
                         <text transform="translate(610.22 324.46)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
                         <text transform="translate(606.4 336.71)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">DUMP</text>
-                        <text transform="translate(106.25 447.68)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">BOOST</text>
-                        <text transform="translate(108.54 451.51)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMP</text>
-                        <text transform="translate(183.49 445.4)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">AUX</text>
-                        <text transform="translate(181.19 449.23)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700" letterSpacing="-0.01em">TANK</text>
-                        <text transform="translate(180.42 453.82)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">PUMP</text>
-                        <text transform="translate(239.32 433.15)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(241.6 440.04)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
-                        <text transform="translate(309.67 433.15)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">OFF</text>
-                        <text transform="translate(309.67 440.04)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ON</text>
-                        <text transform="translate(672.93 492.08)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ENG</text>
-                        <text transform="translate(674.46 500.49)" fontSize="9.18" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">4</text>
-                        <text transform="translate(596.46 492.08)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ENG</text>
-                        <text transform="translate(597.99 500.49)" fontSize="9.18" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">3</text>
+                        <text transform="translate(670 492.08)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ENG</text>
+                        <text transform="translate(671 500.49)" fontSize="9.18" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">4</text>
+                        <text transform="translate(593 492.08)" fontSize="3.83" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">ENG</text>
+                        <text transform="translate(594 500.49)" fontSize="9.18" fill="#fff" fontFamily="Arial-BoldMT, Arial" fontWeight="700">3</text>
                     </g>
 
                     <g id="knobs">
-                        <g>
-                            <path d="M175.1,380.84a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M175.1,380.84a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M170,370.27l-.28-.51v-.71l.34.2Zm.54.05-.23-.53.09-.71.31.22Zm.54.12-.17-.57.14-.68.28.26Zm.51.17-.11-.6.22-.65.26.28Zm.48.2,0-.57.29-.65.22.34Zm.48.28,0-.6.34-.59.2.34Zm.43.31.08-.57.43-.56.14.37Zm.42.37.15-.57.45-.51.11.37Zm.34.4.2-.54.54-.48.09.39Zm.34.45.26-.54.57-.4,0,.37Zm.26.45.31-.48.62-.37,0,.4Zm.23.51.36-.45.66-.28-.06.37Zm.17.51.39-.42.68-.2-.08.37Zm.11.54.45-.37.68-.17-.14.37Zm.06.54.48-.34.71-.06-.17.34Zm0,.54.51-.28h.71l-.2.34Zm-.06.54.54-.23.71.09-.26.31Zm-.11.51.56-.14.68.14-.25.28Zm-.17.54.56-.12.68.23-.31.26Zm-.23.48.59,0,.63.28-.31.23Zm-.26.48.57,0,.62.34-.34.2Zm-.34.43.6.08.57.43-.37.14Zm-.34.39.54.17.54.46-.37.11Zm-.42.37.57.2.45.54-.37.06Zm-.43.34.51.26.43.56-.4,0Zm-.48.26.51.31.34.62-.39,0Zm-.48.22.45.37.29.63-.4,0Zm-.51.17.4.4.22.68-.37-.08Zm-.54.12.37.45.14.68-.37-.14Zm-.54.05.31.49.09.7-.37-.17Zm-.54,0,.26.51v.71l-.31-.2Zm-.53-.05.19.54-.05.7-.32-.25Zm-.54-.12.17.57-.17.68-.29-.28Zm-.51-.17.08.57-.2.68-.25-.31Zm-.51-.22,0,.59-.28.63-.23-.32Zm-.46-.26,0,.57-.36.62-.17-.34Zm-.45-.34-.09.6-.39.56-.17-.36Zm-.4-.34-.14.54-.48.54-.11-.37Zm-.37-.42-.19.56-.52.46-.08-.37Zm-.31-.43-.25.51-.57.43,0-.4Zm-.25-.48-.32.51-.62.34v-.4Zm-.23-.48-.37.45-.65.28.06-.39Zm-.17-.51-.4.39-.68.23.09-.37Zm-.11-.54-.46.37-.68.14.12-.37Zm-.06-.54-.48.31-.71.09.17-.37Zm0-.54-.51.26h-.71l.2-.34Zm.06-.54-.54.2-.71-.06.23-.31Zm.11-.54-.57.17-.68-.17.26-.28Zm.17-.51-.6.09-.65-.2.29-.25Zm.2-.51-.57.06-.65-.31.34-.2Zm.28-.45-.57,0-.62-.37.34-.17Zm.31-.45-.56-.09-.57-.4.37-.17Zm.37-.4-.56-.14-.52-.48.37-.12Zm.4-.37-.54-.2-.48-.51.4-.08Zm.45-.31-.54-.26-.39-.56.39,0Zm.46-.28-.49-.32-.34-.59h.37Zm.51-.2-.46-.37-.28-.65.37.05Zm.51-.17-.43-.43-.2-.65.37.09Zm.54-.12-.37-.45-.17-.68.36.11Zm.53-.05-.34-.48-.05-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="165.18 366.72 165.51 366.55 165.8 366.69 166.11 366.47 166.39 366.58 166.68 366.35 167.02 366.44 167.3 366.15 167.58 366.21 167.78 365.9 168.12 365.93 168.29 365.62 168.63 365.59 168.78 365.25 169.12 365.22 169.26 364.85 169.57 364.76 169.63 364.43 169.94 364.28 169.99 363.94 170.28 363.77 170.28 363.4 170.56 363.23 170.5 362.87 170.79 362.64 170.7 362.3 170.96 362.01 170.82 361.73 171.04 361.45 170.9 361.11 171.07 360.82 170.9 360.57 171.04 360.23 170.82 359.95 170.96 359.63 170.7 359.38 170.79 359.01 170.5 358.81 170.56 358.44 170.28 358.25 170.28 357.9 169.99 357.74 169.94 357.37 169.63 357.23 169.57 356.88 169.26 356.8 169.12 356.46 168.78 356.4 168.63 356.06 168.29 356.06 168.12 355.75 167.78 355.75 167.58 355.47 167.3 355.5 167.02 355.24 166.68 355.33 166.39 355.07 166.11 355.18 165.8 354.99 165.51 355.13 165.18 354.96 164.86 355.13 164.58 354.99 164.27 355.18 163.96 355.07 163.7 355.33 163.36 355.24 163.08 355.5 162.79 355.47 162.59 355.75 162.25 355.75 162.09 356.06 161.72 356.06 161.6 356.4 161.26 356.46 161.12 356.8 160.81 356.88 160.75 357.23 160.41 357.37 160.38 357.74 160.1 357.9 160.1 358.25 159.82 358.44 159.87 358.81 159.59 359.01 159.68 359.38 159.39 359.63 159.56 359.95 159.34 360.23 159.48 360.57 159.31 360.82 159.48 361.11 159.34 361.45 159.56 361.73 159.39 362.01 159.68 362.3 159.59 362.64 159.87 362.87 159.82 363.23 160.1 363.4 160.1 363.77 160.38 363.94 160.41 364.28 160.75 364.43 160.81 364.76 161.12 364.85 161.26 365.22 161.6 365.25 161.72 365.59 162.09 365.62 162.25 365.93 162.59 365.9 162.79 366.21 163.08 366.15 163.36 366.44 163.7 366.35 163.96 366.58 164.27 366.47 164.58 366.69 164.86 366.55 165.18 366.72" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M169.69,373.73a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M169.69,373.73a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M169.69,376.08a.64.64,0,1,0,0-1.28.64.64,0,0,0,0,1.28Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M101,381.38a7.64,7.64,0,1,0-5.42,2.24,7.61,7.61,0,0,0,5.42-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M101,381.38a7.64,7.64,0,1,0-5.42,2.24,7.61,7.61,0,0,0,5.42-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M95.82,370.81l-.29-.51v-.71l.34.2Zm.54.05-.23-.54.08-.7.32.22Zm.54.12-.18-.57.15-.68.28.25Zm.51.17-.12-.6.23-.65.25.28Zm.48.19,0-.56.28-.65.23.34Zm.48.29,0-.6.34-.59.2.34Zm.42.31.09-.57.42-.56.15.36Zm.43.37.14-.57.45-.51.12.37Zm.34.39.2-.53.54-.49.08.4Zm.34.46.25-.54.57-.4,0,.37Zm.25.45.32-.48.62-.37,0,.4Zm.23.51.37-.45.65-.28-.05.36Zm.17.51.4-.42.68-.2-.09.37Zm.12.54.45-.37.68-.17-.14.37Zm0,.54.48-.34.71-.06-.17.34Zm0,.54.51-.29h.71l-.2.34Zm0,.54.53-.23.71.09-.25.31Zm-.12.51.57-.14.68.14-.26.28Zm-.17.54.57-.12.68.23-.31.25Zm-.23.48.6,0,.62.28-.31.23Zm-.25.48.57,0,.62.34-.34.2Zm-.34.42.59.09.57.42-.37.15Zm-.34.4.54.17.54.46-.37.11Zm-.43.37.57.2.45.54-.36,0Zm-.42.34.51.26.42.56-.39,0Zm-.48.26.51.31.34.62-.4,0Zm-.48.22.45.37.28.62-.39,0Zm-.51.17.39.4.23.68-.37-.09Zm-.54.12.36.45.15.68-.37-.14Zm-.54,0,.31.48.08.71-.36-.17Zm-.54,0,.25.51v.71l-.31-.2Zm-.54,0,.2.53-.06.71-.31-.25ZM94.2,381l.17.57-.17.68-.28-.28Zm-.51-.17.09.57-.2.68-.26-.31Zm-.51-.22.06.59-.29.62-.22-.31Zm-.45-.26,0,.57-.37.62-.17-.34Zm-.46-.34-.08.6-.4.56-.17-.37Zm-.39-.34-.14.54-.49.54-.11-.37Zm-.37-.43-.2.57-.51.46-.08-.37Zm-.31-.42-.26.51-.56.42,0-.39Zm-.26-.48-.31.51-.62.34v-.4Zm-.22-.48-.37.45-.65.28,0-.39Zm-.17-.51-.4.39-.68.23.08-.37Zm-.12-.54-.45.37-.68.14.11-.37Zm-.05-.54-.49.31-.71.09.17-.37Zm0-.54-.51.25h-.71l.19-.34Zm.05-.54-.54.2-.71-.06.23-.31Zm.12-.54-.57.17-.68-.17.25-.28Zm.17-.51-.6.09-.65-.2.28-.26Zm.19-.51-.56.06-.65-.31.34-.2Zm.29-.45-.57,0-.62-.37.34-.17Zm.31-.46-.57-.08-.56-.4.36-.17Zm.37-.39-.57-.14-.51-.49.37-.11Zm.39-.37-.53-.2-.49-.51.4-.08Zm.46-.31-.54-.26-.4-.56.4,0Zm.45-.29L92.7,371l-.34-.59h.37Zm.51-.19-.45-.37-.29-.65.37.05Zm.51-.17-.42-.43-.2-.65L94,370Zm.54-.12-.37-.45-.17-.68.37.11Zm.54-.05-.34-.49-.06-.7.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="91.02 367.26 91.36 367.09 91.64 367.23 91.96 367 92.24 367.12 92.52 366.89 92.86 366.98 93.15 366.69 93.43 366.75 93.63 366.44 93.97 366.47 94.14 366.15 94.48 366.13 94.62 365.79 94.96 365.76 95.1 365.39 95.41 365.3 95.47 364.96 95.78 364.82 95.84 364.48 96.12 364.31 96.12 363.94 96.41 363.77 96.35 363.4 96.63 363.18 96.55 362.84 96.8 362.55 96.66 362.27 96.89 361.99 96.75 361.65 96.92 361.36 96.75 361.11 96.89 360.77 96.66 360.49 96.8 360.17 96.55 359.92 96.63 359.55 96.35 359.35 96.41 358.98 96.12 358.78 96.12 358.44 95.84 358.27 95.78 357.9 95.47 357.76 95.41 357.42 95.1 357.34 94.96 357 94.62 356.94 94.48 356.6 94.14 356.6 93.97 356.29 93.63 356.29 93.43 356.01 93.15 356.03 92.86 355.78 92.52 355.86 92.24 355.61 91.96 355.72 91.64 355.52 91.36 355.67 91.02 355.5 90.71 355.67 90.42 355.52 90.11 355.72 89.8 355.61 89.55 355.86 89.21 355.78 88.92 356.03 88.64 356.01 88.44 356.29 88.1 356.29 87.93 356.6 87.56 356.6 87.45 356.94 87.11 357 86.97 357.34 86.66 357.42 86.6 357.76 86.26 357.9 86.23 358.27 85.95 358.44 85.95 358.78 85.66 358.98 85.72 359.35 85.44 359.55 85.52 359.92 85.24 360.17 85.41 360.49 85.18 360.77 85.32 361.11 85.15 361.36 85.32 361.65 85.18 361.99 85.41 362.27 85.24 362.55 85.52 362.84 85.44 363.18 85.72 363.4 85.66 363.77 85.95 363.94 85.95 364.31 86.23 364.48 86.26 364.82 86.6 364.96 86.66 365.3 86.97 365.39 87.11 365.76 87.45 365.79 87.56 366.13 87.93 366.15 88.1 366.47 88.44 366.44 88.64 366.75 88.92 366.69 89.21 366.98 89.55 366.89 89.8 367.12 90.11 367 90.42 367.23 90.71 367.09 91.02 367.26" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M95.53,374.26a1.72,1.72,0,1,0,1.73,1.7,1.71,1.71,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M95.53,374.26a1.72,1.72,0,1,0,1.73,1.7,1.71,1.71,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M95.53,376.62a.65.65,0,0,0,.66-.66.64.64,0,0,0-.66-.62.62.62,0,0,0-.62.62.64.64,0,0,0,.62.66Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M85.36,363.41A7.64,7.64,0,1,0,80,365.65a7.61,7.61,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M85.36,363.41A7.64,7.64,0,1,0,80,365.65a7.61,7.61,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M80.23,352.83l-.28-.51v-.7l.34.19Zm.54.06-.22-.54.08-.71.31.23Zm.54.11-.17-.56.14-.68.29.25Zm.51.17-.11-.59.22-.65.26.28Zm.48.2,0-.56.29-.66.22.34Zm.48.29,0-.6.34-.59.2.34Zm.43.31.08-.57.43-.57.14.37Zm.43.37.14-.57.45-.51.11.37Zm.34.39.19-.54.54-.48.09.4Zm.34.46.25-.54.57-.4,0,.37Zm.25.45.31-.48.63-.37,0,.4Zm.23.51.37-.45.65-.29-.06.37Zm.17.51.39-.42L86,356l-.08.37Zm.11.54.45-.37.68-.17-.14.37Zm.06.54.48-.34.71-.06-.17.34Zm0,.54.51-.29h.71l-.2.34Zm-.06.54.54-.23.71.08-.26.32Zm-.11.51.56-.15.68.15-.25.28Zm-.17.53.56-.11L86,360l-.31.25Zm-.23.49.6,0,.62.28-.31.23Zm-.25.48.56,0,.63.34-.34.19Zm-.34.42.59.09.57.42-.37.14Zm-.34.4.53.17.54.45-.37.12Zm-.43.37.57.2.45.54-.37.05Zm-.43.34.51.25.43.57-.4,0Zm-.48.25.51.32.34.62-.39,0Zm-.48.23.45.37.29.62-.4,0Zm-.51.17.4.4.22.68-.36-.09Zm-.54.11.37.46.14.68-.37-.14Zm-.54.06.32.48.08.71-.37-.17Zm-.54,0,.26.51v.71l-.31-.2Zm-.53-.06.19.54,0,.71-.31-.25Zm-.54-.11.17.57-.17.68-.29-.29Zm-.51-.17.08.57-.2.68-.25-.31Zm-.51-.23.05.6-.28.62-.23-.31Zm-.46-.25,0,.57-.37.62-.17-.34Zm-.45-.34-.08.59-.4.57-.17-.37Zm-.4-.34-.14.54-.48.54-.11-.37Zm-.37-.43-.19.57-.51.45-.09-.37Zm-.31-.42-.25.51-.57.42,0-.39Zm-.25-.48-.31.51-.63.34v-.4Zm-.23-.49-.37.46-.65.28.06-.4Zm-.17-.51-.4.4-.68.23.09-.37Zm-.11-.53-.46.36-.68.15.12-.37Zm-.06-.54-.48.31-.71.08.17-.37Zm0-.54-.51.25h-.71l.2-.34Zm.06-.54-.54.2-.71-.06.23-.31Zm.11-.54-.57.17-.68-.17.26-.28Zm.17-.51-.59.09-.66-.2.29-.26Zm.2-.51-.57.06-.65-.31.34-.2Zm.28-.45-.56,0-.63-.37.34-.17Zm.31-.46-.56-.08-.57-.4.37-.17Zm.37-.39-.56-.15-.51-.48.36-.11Zm.4-.37-.54-.2-.48-.51.4-.09Zm.45-.31-.53-.26-.4-.57.4,0Zm.46-.29-.48-.31-.34-.59h.36Zm.51-.2-.46-.36-.28-.66.37.06Zm.51-.17-.43-.42-.2-.65.37.08Zm.54-.11-.37-.45-.17-.68.37.11Zm.53-.06-.34-.48,0-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="75.44 349.29 75.78 349.12 76.06 349.26 76.37 349.03 76.66 349.15 76.94 348.92 77.28 349 77.56 348.72 77.85 348.78 78.04 348.47 78.38 348.49 78.55 348.18 78.89 348.15 79.04 347.81 79.38 347.79 79.52 347.42 79.83 347.33 79.89 346.99 80.2 346.85 80.25 346.51 80.54 346.34 80.54 345.97 80.82 345.8 80.77 345.43 81.05 345.21 80.96 344.87 81.22 344.58 81.08 344.3 81.3 344.01 81.16 343.68 81.33 343.39 81.16 343.14 81.3 342.8 81.08 342.51 81.22 342.2 80.96 341.95 81.05 341.58 80.77 341.38 80.82 341.01 80.54 340.81 80.54 340.47 80.25 340.3 80.2 339.93 79.89 339.79 79.83 339.45 79.52 339.37 79.38 339.03 79.04 338.97 78.89 338.63 78.55 338.63 78.38 338.32 78.04 338.32 77.85 338.03 77.56 338.06 77.28 337.81 76.94 337.89 76.66 337.64 76.37 337.75 76.06 337.55 75.78 337.69 75.44 337.52 75.12 337.69 74.84 337.55 74.53 337.75 74.22 337.64 73.96 337.89 73.62 337.81 73.34 338.06 73.06 338.03 72.86 338.32 72.52 338.32 72.35 338.63 71.98 338.63 71.86 338.97 71.52 339.03 71.38 339.37 71.07 339.45 71.01 339.79 70.67 339.93 70.65 340.3 70.36 340.47 70.36 340.81 70.08 341.01 70.14 341.38 69.85 341.58 69.94 341.95 69.65 342.2 69.82 342.51 69.6 342.8 69.74 343.14 69.57 343.39 69.74 343.68 69.6 344.01 69.82 344.3 69.65 344.58 69.94 344.87 69.85 345.21 70.14 345.43 70.08 345.8 70.36 345.97 70.36 346.34 70.65 346.51 70.67 346.85 71.01 346.99 71.07 347.33 71.38 347.42 71.52 347.79 71.86 347.81 71.98 348.15 72.35 348.18 72.52 348.49 72.86 348.47 73.06 348.78 73.34 348.72 73.62 349 73.96 348.92 74.22 349.15 74.53 349.03 74.84 349.26 75.12 349.12 75.44 349.29" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M80,356.29a1.72,1.72,0,1,0,1.73,1.7,1.7,1.7,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M80,356.29a1.72,1.72,0,1,0,1.73,1.7,1.7,1.7,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M80,358.65a.64.64,0,0,0,.65-.66.63.63,0,0,0-.65-.62.62.62,0,0,0-.62.62.64.64,0,0,0,.62.66Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M40.84,442a7.64,7.64,0,1,0-5.41,2.23A7.61,7.61,0,0,0,40.84,442Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M40.84,442a7.64,7.64,0,1,0-5.41,2.23A7.61,7.61,0,0,0,40.84,442Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M35.71,431.38l-.28-.51v-.71l.34.2Zm.54.06L36,430.9l.09-.71.31.23Zm.54.11-.17-.56.14-.69.28.26Zm.51.17-.12-.59.23-.66.26.29Zm.48.2,0-.57.28-.65.23.34Zm.48.28,0-.59.34-.6.2.34Zm.43.32.08-.57.43-.57.14.37Zm.42.36.14-.56.46-.51.11.37Zm.34.4.2-.54.54-.48.08.4Zm.34.45.26-.53.56-.4,0,.37Zm.26.46.31-.48.62-.37,0,.39Zm.22.51.37-.45.65-.29,0,.37Zm.17.51.4-.43.68-.19-.08.36Zm.12.54.45-.37.68-.17-.14.37Zm0,.54.49-.34.7-.06-.17.34Zm0,.53.51-.28h.71l-.2.34Zm0,.54.54-.22.7.08-.25.31Zm-.12.51.57-.14.68.14-.25.29Zm-.17.54.57-.11.68.23-.31.25Zm-.22.48.59,0,.63.28-.32.23Zm-.26.49.57,0,.62.34-.34.2Zm-.34.42.6.09.56.42-.37.14Zm-.34.4.54.17.54.45-.37.11Zm-.42.37.56.19.46.54-.37.06Zm-.43.34.51.25.43.57-.4,0Zm-.48.25.51.31.34.63-.4,0Zm-.48.23.45.37.28.62-.39,0Zm-.51.17.39.4.23.68-.37-.09Zm-.54.11.37.46.14.68-.37-.15Zm-.54.06.31.48.09.71-.37-.17Zm-.54,0,.26.51V443l-.32-.2Zm-.54-.06.2.54-.06.71-.31-.26Zm-.54-.11.17.57-.17.68-.28-.29Zm-.51-.17.09.57-.2.68-.26-.32Zm-.51-.23.06.6-.28.62-.23-.31Zm-.45-.25,0,.56-.37.63-.17-.34Zm-.45-.34-.09.59-.4.57-.17-.37Zm-.4-.34-.14.53-.48.54-.12-.37Zm-.37-.43-.2.57-.51.45-.08-.37Zm-.31-.42-.26.51-.56.42,0-.4Zm-.26-.49-.31.51-.62.34v-.39Zm-.22-.48-.37.46-.65.28.05-.4Zm-.17-.51-.4.4-.68.23.08-.37Zm-.12-.54-.45.37-.68.14.11-.37Zm-.05-.54-.49.32-.7.08.17-.37Zm0-.53-.51.25h-.71l.2-.34Zm.05-.54-.54.2-.7-.06.22-.31Zm.12-.54-.57.17-.68-.17.25-.28Zm.17-.51-.6.08-.65-.19.28-.26Zm.2-.51-.57.06-.65-.32.34-.2Zm.28-.46-.57,0-.62-.37.34-.17Zm.31-.45-.57-.08-.56-.4.37-.17Zm.37-.4-.57-.14-.51-.48.37-.11Zm.4-.36-.54-.2-.48-.51.39-.09Zm.45-.32-.54-.25-.4-.57.4,0Zm.45-.28-.48-.31-.34-.6h.37Zm.51-.2-.45-.37-.28-.65.36.06Zm.51-.17-.42-.42-.2-.66.37.09Zm.54-.11-.37-.45-.17-.69.37.12Zm.54-.06-.34-.48-.06-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="30.91 427.84 31.25 427.67 31.54 427.81 31.85 427.58 32.13 427.69 32.41 427.47 32.75 427.55 33.04 427.27 33.32 427.33 33.52 427.01 33.86 427.04 34.03 426.73 34.37 426.7 34.51 426.36 34.85 426.33 34.99 425.96 35.31 425.88 35.36 425.54 35.67 425.4 35.73 425.06 36.01 424.89 36.01 424.52 36.3 424.35 36.24 423.98 36.52 423.75 36.44 423.41 36.69 423.13 36.55 422.85 36.78 422.56 36.64 422.22 36.81 421.94 36.64 421.69 36.78 421.35 36.55 421.06 36.69 420.75 36.44 420.49 36.52 420.13 36.24 419.93 36.3 419.56 36.01 419.36 36.01 419.02 35.73 418.85 35.67 418.48 35.36 418.34 35.31 418 34.99 417.92 34.85 417.57 34.51 417.52 34.37 417.18 34.03 417.18 33.86 416.87 33.52 416.87 33.32 416.58 33.04 416.61 32.75 416.36 32.41 416.44 32.13 416.19 31.85 416.3 31.54 416.1 31.25 416.24 30.91 416.07 30.6 416.24 30.32 416.1 30 416.3 29.69 416.19 29.44 416.44 29.1 416.36 28.81 416.61 28.53 416.58 28.33 416.87 27.99 416.87 27.82 417.18 27.45 417.18 27.34 417.52 27 417.57 26.86 417.92 26.55 418 26.49 418.34 26.15 418.48 26.12 418.85 25.84 419.02 25.84 419.36 25.55 419.56 25.61 419.93 25.33 420.13 25.41 420.49 25.13 420.75 25.3 421.06 25.07 421.35 25.21 421.69 25.04 421.94 25.21 422.22 25.07 422.56 25.3 422.85 25.13 423.13 25.41 423.41 25.33 423.75 25.61 423.98 25.55 424.35 25.84 424.52 25.84 424.89 26.12 425.06 26.15 425.4 26.49 425.54 26.55 425.88 26.86 425.96 27 426.33 27.34 426.36 27.45 426.7 27.82 426.73 27.99 427.04 28.33 427.01 28.53 427.33 28.81 427.27 29.1 427.55 29.44 427.47 29.69 427.69 30 427.58 30.32 427.81 30.6 427.67 30.91 427.84" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M35.43,434.84a1.72,1.72,0,1,0,1.72,1.7,1.71,1.71,0,0,0-1.72-1.7Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M35.43,434.84a1.72,1.72,0,1,0,1.72,1.7,1.71,1.71,0,0,0-1.72-1.7Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M35.43,437.19a.64.64,0,1,0,0-1.27.63.63,0,0,0-.63.62.64.64,0,0,0,.63.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M100.72,468.26a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M100.72,468.26a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M95.59,457.69l-.28-.51v-.71l.34.2Zm.54.05-.23-.53.09-.71.31.22Zm.54.12-.17-.57.14-.68.28.26Zm.51.17-.11-.6.22-.65.26.28Zm.48.2,0-.57.29-.65.22.34Zm.48.28,0-.6.34-.59.2.34Zm.43.31.08-.57.43-.56.14.37Zm.42.37.14-.57.46-.51.11.37Zm.34.4.2-.54.54-.48.08.39Zm.34.45.26-.54.57-.4,0,.37Zm.26.45.31-.48.62-.37,0,.4Zm.22.51.37-.45.66-.28-.06.37Zm.17.51.4-.42.68-.2-.08.37Zm.12.54.45-.37.68-.17-.14.37Zm.06.54.48-.34.71-.06-.17.34Zm0,.54.51-.28h.7l-.19.34Zm-.06.54.54-.23.71.09-.26.31Zm-.12.51.57-.14.68.14-.25.28Zm-.17.54.57-.12.68.23-.31.26Zm-.22.48.59,0,.63.28-.31.23Zm-.26.48.57,0,.62.34-.34.2Zm-.34.43.6.08.57.43-.37.14Zm-.34.39.54.17.54.46-.37.11Zm-.42.37.56.2.46.54-.37.06Zm-.43.34.51.26.43.56-.4,0Zm-.48.26.51.31.34.62-.4,0Zm-.48.22.45.37.29.63-.4,0Zm-.51.17.4.4.22.68-.37-.08Zm-.54.12.37.45.14.68-.37-.14Zm-.54,0,.31.49.09.7-.37-.17Zm-.54,0,.26.51v.71l-.31-.2Zm-.54,0,.2.54,0,.7-.32-.25Zm-.53-.12.17.57-.17.68-.29-.28Zm-.51-.17.08.57-.2.68-.25-.31Zm-.52-.22.06.59-.28.63-.23-.32Zm-.45-.26,0,.57-.37.62-.17-.34Zm-.45-.34-.09.6-.39.56-.17-.36Zm-.4-.34-.14.54-.48.54-.12-.37Zm-.37-.42-.2.56-.51.46-.08-.37Zm-.31-.43-.25.51-.57.43,0-.4Zm-.25-.48-.32.51-.62.34v-.4Zm-.23-.48-.37.45-.65.28,0-.39Zm-.17-.51-.4.39-.68.23.09-.37Zm-.11-.54-.46.37-.68.14.11-.37Zm-.06-.54-.48.31-.71.09.17-.37Zm0-.54-.51.26h-.71l.2-.34Zm.06-.54-.54.2-.71-.06.22-.31Zm.11-.54-.57.17-.68-.17.26-.28Zm.17-.51-.6.09-.65-.2.28-.25Zm.2-.51-.57.06-.65-.31.34-.2ZM91,460l-.57,0-.62-.37.34-.17Zm.31-.45-.56-.09-.57-.4.37-.17Zm.37-.4-.57-.14-.51-.48.37-.12Zm.4-.37-.54-.2-.48-.51.39-.08Zm.45-.31-.54-.26-.39-.56.39,0Zm.45-.28-.48-.32-.34-.59h.37Zm.52-.2-.46-.37-.28-.65.37.05Zm.51-.17-.43-.43-.2-.65.37.09Zm.53-.12-.36-.45-.17-.68.36.11Zm.54-.05-.34-.48,0-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="90.79 454.14 91.13 453.97 91.42 454.11 91.73 453.89 92.01 454 92.3 453.77 92.64 453.86 92.92 453.57 93.2 453.63 93.4 453.32 93.74 453.35 93.91 453.04 94.25 453.01 94.39 452.67 94.73 452.64 94.88 452.27 95.19 452.19 95.24 451.85 95.56 451.7 95.61 451.36 95.9 451.19 95.9 450.82 96.18 450.65 96.12 450.29 96.41 450.06 96.32 449.72 96.58 449.44 96.44 449.15 96.66 448.87 96.52 448.53 96.69 448.25 96.52 447.99 96.66 447.65 96.44 447.37 96.58 447.06 96.32 446.8 96.41 446.43 96.12 446.23 96.18 445.86 95.9 445.67 95.9 445.33 95.61 445.16 95.56 444.79 95.24 444.64 95.19 444.31 94.88 444.22 94.73 443.88 94.39 443.82 94.25 443.48 93.91 443.48 93.74 443.17 93.4 443.17 93.2 442.89 92.92 442.92 92.64 442.66 92.3 442.75 92.01 442.49 91.73 442.6 91.42 442.41 91.13 442.55 90.79 442.38 90.48 442.55 90.2 442.41 89.89 442.6 89.58 442.49 89.32 442.75 88.98 442.66 88.7 442.92 88.41 442.89 88.21 443.17 87.87 443.17 87.7 443.48 87.33 443.48 87.22 443.82 86.88 443.88 86.74 444.22 86.43 444.31 86.37 444.64 86.03 444.79 86 445.16 85.72 445.33 85.72 445.67 85.44 445.86 85.49 446.23 85.21 446.43 85.29 446.8 85.01 447.06 85.18 447.37 84.95 447.65 85.1 447.99 84.93 448.25 85.1 448.53 84.95 448.87 85.18 449.15 85.01 449.44 85.29 449.72 85.21 450.06 85.49 450.29 85.44 450.65 85.72 450.82 85.72 451.19 86 451.36 86.03 451.7 86.37 451.85 86.43 452.19 86.74 452.27 86.88 452.64 87.22 452.67 87.33 453.01 87.7 453.04 87.87 453.35 88.21 453.32 88.41 453.63 88.7 453.57 88.98 453.86 89.32 453.77 89.58 454 89.89 453.89 90.2 454.11 90.48 453.97 90.79 454.14" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M95.31,461.15a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M95.31,461.15a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M95.31,463.5a.64.64,0,1,0-.63-.65.64.64,0,0,0,.63.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M191.47,441.62a7.64,7.64,0,1,0-5.41,2.23,7.61,7.61,0,0,0,5.41-2.23Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M191.47,441.62a7.64,7.64,0,1,0-5.41,2.23,7.61,7.61,0,0,0,5.41-2.23Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M186.34,431l-.28-.51v-.71l.34.2Zm.54.06-.23-.54.09-.71.31.23Zm.54.11-.17-.56.14-.69.28.26Zm.51.17-.11-.59.22-.66.26.29Zm.48.2,0-.57.29-.65.22.34Zm.48.28,0-.59.34-.6.2.34Zm.43.32.08-.57.43-.57.14.37Zm.42.36.15-.56.45-.51.11.37Zm.34.4.2-.54.54-.48.09.4Zm.34.45.26-.53.57-.4,0,.37Zm.26.46.31-.48.62-.37,0,.39Zm.23.51.36-.46.66-.28-.06.37Zm.17.51.39-.43.68-.19-.08.36Zm.11.54.45-.37.68-.17-.14.37Zm.06.54.48-.34.71-.06-.17.34Zm0,.53.51-.28h.71l-.2.34Zm-.06.54.54-.22.71.08-.26.31Zm-.11.51.56-.14.68.14-.25.29Zm-.17.54.56-.11.68.23-.31.25Zm-.23.48.59,0,.63.28-.31.23Zm-.26.49.57,0,.62.34-.34.2Zm-.34.42.6.09.57.42-.37.14Zm-.34.4.54.17.54.45-.37.11Zm-.42.37.57.19.45.54L190,441Zm-.43.34.51.25.43.57-.4,0Zm-.48.25.51.31.34.63-.39,0Zm-.48.23.45.37.29.62-.4,0Zm-.51.17.4.4.22.68-.37-.09Zm-.54.11.37.46.14.68-.37-.15Zm-.54.06.31.48.09.71-.37-.17Zm-.54,0,.26.51v.71l-.31-.2Zm-.53-.06.19.54-.05.71-.31-.26Zm-.54-.11.17.57-.17.68-.29-.29Zm-.51-.17.08.57-.2.68-.25-.32Zm-.51-.23,0,.6-.28.62-.23-.31Zm-.46-.25,0,.56-.36.63-.17-.34Zm-.45-.34-.09.59-.39.57-.17-.37Zm-.4-.34-.14.53-.48.54-.11-.37Zm-.37-.43-.19.57-.52.45-.08-.37Zm-.31-.42-.25.51-.57.42,0-.4Zm-.25-.49-.32.51-.62.34V439Zm-.23-.48-.37.46-.65.28.06-.4Zm-.17-.51-.4.4-.68.23.09-.37ZM181,437l-.46.37-.68.14.12-.37Zm-.06-.54-.48.32-.71.08.17-.37Zm0-.53-.51.25h-.71l.2-.34Zm.06-.54-.54.2-.71-.06.23-.31Zm.11-.54-.57.17-.68-.17.26-.28Zm.17-.51-.6.08-.65-.19.29-.26Zm.2-.51-.57,0-.65-.31.34-.2Zm.28-.46-.57,0-.62-.37.34-.17Zm.31-.45-.56-.08-.57-.4.37-.17Zm.37-.4-.56-.14-.52-.48.37-.11Zm.4-.36-.54-.2-.48-.51.4-.09Zm.45-.32-.54-.25-.39-.57.39,0Zm.46-.28-.49-.31-.34-.6h.37Zm.51-.2-.46-.37-.28-.65.37.06Zm.51-.17-.43-.42-.2-.66.37.09Zm.54-.11-.37-.45-.17-.69.37.12Zm.53-.06-.34-.48-.05-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="181.54 427.5 181.88 427.33 182.17 427.47 182.48 427.24 182.76 427.35 183.05 427.13 183.39 427.21 183.67 426.93 183.95 426.99 184.15 426.67 184.49 426.7 184.66 426.39 185 426.36 185.15 426.02 185.49 425.99 185.63 425.63 185.94 425.54 186 425.2 186.31 425.06 186.36 424.72 186.65 424.55 186.65 424.18 186.93 424.01 186.87 423.64 187.16 423.41 187.07 423.07 187.33 422.79 187.19 422.51 187.41 422.22 187.27 421.88 187.44 421.6 187.27 421.35 187.41 421 187.19 420.72 187.33 420.41 187.07 420.15 187.16 419.79 186.87 419.59 186.93 419.22 186.65 419.02 186.65 418.68 186.36 418.51 186.31 418.14 186 418 185.94 417.66 185.63 417.57 185.49 417.23 185.15 417.18 185 416.84 184.66 416.84 184.49 416.53 184.15 416.53 183.95 416.24 183.67 416.27 183.39 416.01 183.05 416.1 182.76 415.85 182.48 415.96 182.17 415.76 181.88 415.9 181.54 415.73 181.23 415.9 180.95 415.76 180.64 415.96 180.33 415.85 180.07 416.1 179.73 416.01 179.45 416.27 179.16 416.24 178.97 416.53 178.63 416.53 178.46 416.84 178.09 416.84 177.97 417.18 177.63 417.23 177.49 417.57 177.18 417.66 177.12 418 176.78 418.14 176.75 418.51 176.47 418.68 176.47 419.02 176.19 419.22 176.24 419.59 175.96 419.79 176.05 420.15 175.76 420.41 175.93 420.72 175.71 421 175.85 421.35 175.68 421.6 175.85 421.88 175.71 422.22 175.93 422.51 175.76 422.79 176.05 423.07 175.96 423.41 176.24 423.64 176.19 424.01 176.47 424.18 176.47 424.55 176.75 424.72 176.78 425.06 177.12 425.2 177.18 425.54 177.49 425.63 177.63 425.99 177.97 426.02 178.09 426.36 178.46 426.39 178.63 426.7 178.97 426.67 179.16 426.99 179.45 426.93 179.73 427.21 180.07 427.13 180.33 427.35 180.64 427.24 180.95 427.47 181.23 427.33 181.54 427.5" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M186.06,434.5a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M186.06,434.5a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M186.06,436.85a.64.64,0,1,0,0-1.27.62.62,0,0,0-.62.62.63.63,0,0,0,.62.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M230.53,441.62a7.64,7.64,0,1,0-5.41,2.23,7.61,7.61,0,0,0,5.41-2.23Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M230.53,441.62a7.64,7.64,0,1,0-5.41,2.23,7.61,7.61,0,0,0,5.41-2.23Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M225.4,431l-.28-.51v-.71l.34.2Zm.54.06-.22-.54.08-.71.31.23Zm.54.11-.17-.56.14-.69.29.26Zm.51.17-.11-.59.22-.66.26.29Zm.48.2,0-.57.29-.65.22.34Zm.48.28,0-.59.34-.6.2.34Zm.43.32.09-.57.42-.57.14.37Zm.43.36L229,432l.45-.51.11.37Zm.34.4.19-.54.54-.48.09.4Zm.34.45.25-.53.57-.4,0,.37Zm.25.46.31-.48.63-.37,0,.39Zm.23.51.37-.46.65-.28-.06.37Zm.17.51.39-.43.68-.19-.08.36Zm.11.54.45-.37.68-.17-.14.37Zm.06.54.48-.34.71-.06-.17.34Zm0,.53.51-.28h.71l-.2.34Zm-.06.54.54-.22.71.08-.26.31Zm-.11.51.56-.14.68.14-.25.29Zm-.17.54.56-.11.68.23-.31.25Zm-.23.48.6,0,.62.28-.31.23Zm-.25.49.56,0,.63.34-.34.2Zm-.34.42.59.09.57.42-.37.14Zm-.34.4.53.17.54.45-.37.11Zm-.43.37.57.19.45.54L229,441Zm-.43.34.52.25.42.57-.4,0Zm-.48.25.51.31.34.63-.39,0Zm-.48.23.45.37.29.62-.4,0Zm-.51.17.4.4.22.68-.36-.09Zm-.54.11.37.46.14.68-.37-.15Zm-.54.06.32.48.08.71-.37-.17Zm-.53,0,.25.51v.71l-.31-.2Zm-.54-.06.19.54-.05.71-.31-.26Zm-.54-.11.17.57-.17.68-.29-.29Zm-.51-.17.08.57-.2.68-.25-.32Zm-.51-.23,0,.6-.28.62-.23-.31Zm-.46-.25,0,.56-.37.63-.17-.34Zm-.45-.34-.08.59-.4.57-.17-.37Zm-.4-.34-.14.53-.48.54-.11-.37Zm-.36-.43-.2.57-.51.45-.09-.37Zm-.32-.42-.25.51L220,440l0-.4Zm-.25-.49-.31.51-.63.34V439Zm-.23-.48-.37.46-.65.28.06-.4Zm-.17-.51-.4.4-.68.23.09-.37ZM220,437l-.46.37-.68.14.12-.37Zm-.06-.54-.48.32-.71.08.17-.37Zm0-.53-.51.25h-.71l.2-.34Zm.06-.54-.54.2-.71-.06.23-.31Zm.11-.54-.57.17-.68-.17.26-.28Zm.17-.51-.59.08-.66-.19.29-.26Zm.2-.51-.57,0-.65-.31.34-.2Zm.28-.46-.56,0-.63-.37.34-.17Zm.32-.45-.57-.08-.57-.4.37-.17Zm.36-.4-.56-.14-.51-.48.36-.11Zm.4-.36-.54-.2-.48-.51.4-.09Zm.45-.32-.53-.25-.4-.57.4,0Zm.46-.28-.48-.31-.34-.6h.36Zm.51-.2-.46-.37-.28-.65.37.06Zm.51-.17-.43-.42-.2-.66.37.09Zm.54-.11-.37-.45-.17-.69.37.12Zm.54-.06-.35-.48-.05-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="220.61 427.5 220.95 427.33 221.23 427.47 221.54 427.24 221.82 427.35 222.11 427.13 222.45 427.21 222.73 426.93 223.02 426.99 223.21 426.67 223.55 426.7 223.72 426.39 224.06 426.36 224.21 426.02 224.55 425.99 224.69 425.63 225 425.54 225.06 425.2 225.37 425.06 225.43 424.72 225.71 424.55 225.71 424.18 225.99 424.01 225.94 423.64 226.22 423.41 226.13 423.07 226.39 422.79 226.25 422.51 226.47 422.22 226.33 421.88 226.5 421.6 226.33 421.35 226.47 421 226.25 420.72 226.39 420.41 226.13 420.15 226.22 419.79 225.94 419.59 225.99 419.22 225.71 419.02 225.71 418.68 225.43 418.51 225.37 418.14 225.06 418 225 417.66 224.69 417.57 224.55 417.23 224.21 417.18 224.06 416.84 223.72 416.84 223.55 416.53 223.21 416.53 223.02 416.24 222.73 416.27 222.45 416.01 222.11 416.1 221.82 415.85 221.54 415.96 221.23 415.76 220.95 415.9 220.61 415.73 220.29 415.9 220.01 415.76 219.7 415.96 219.39 415.85 219.13 416.1 218.79 416.01 218.51 416.27 218.22 416.24 218.03 416.53 217.69 416.53 217.52 416.84 217.15 416.84 217.03 417.18 216.69 417.23 216.55 417.57 216.24 417.66 216.18 418 215.84 418.14 215.82 418.51 215.53 418.68 215.53 419.02 215.25 419.22 215.31 419.59 215.02 419.79 215.11 420.15 214.82 420.41 214.99 420.72 214.77 421 214.91 421.35 214.74 421.6 214.91 421.88 214.77 422.22 214.99 422.51 214.82 422.79 215.11 423.07 215.02 423.41 215.31 423.64 215.25 424.01 215.53 424.18 215.53 424.55 215.82 424.72 215.84 425.06 216.18 425.2 216.24 425.54 216.55 425.63 216.69 425.99 217.03 426.02 217.15 426.36 217.52 426.39 217.69 426.7 218.03 426.67 218.22 426.99 218.51 426.93 218.79 427.21 219.13 427.13 219.39 427.35 219.7 427.24 220.01 427.47 220.29 427.33 220.61 427.5" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M225.12,434.5a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M225.12,434.5a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M225.12,436.85a.64.64,0,1,0,0-1.27.62.62,0,0,0-.62.62.63.63,0,0,0,.62.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M249.1,367.8a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M249.1,367.8a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M244,357.23l-.28-.51V356l.34.2Zm.54,0-.23-.53.09-.71.31.22Zm.54.12-.17-.57.14-.68.28.26Zm.51.17-.12-.6.23-.65.26.28Zm.48.2,0-.57.29-.65.22.34Zm.48.28,0-.6.34-.59.2.34Zm.43.31.08-.57.43-.56.14.37Zm.42.37.14-.57.46-.51.11.37Zm.34.4.2-.54.54-.48.08.39Zm.34.45.26-.54.56-.39,0,.36Zm.26.45.31-.48.62-.37,0,.4Zm.22.51.37-.45.65-.28-.05.37Zm.17.51.4-.42.68-.2-.08.37Zm.12.54.45-.37.68-.17-.14.37Zm.05.54.49-.34.71-.06-.17.34Zm0,.54.51-.28h.71l-.19.34Zm-.05.54.54-.23.71.09-.26.31Zm-.12.51.57-.14.68.14-.25.28Zm-.17.54.57-.12.68.23-.31.26Zm-.22.48.59,0,.63.28-.32.23Zm-.26.48.57,0,.62.34-.34.2Zm-.34.43.6.08.56.43-.36.14Zm-.34.39.54.17.54.46-.37.11Zm-.42.37.56.2.46.54-.37.06Zm-.43.34.51.26.43.56-.4,0ZM246,367l.51.31.34.62-.4,0Zm-.48.22.45.37.29.63-.4,0Zm-.51.17.39.4.23.68-.37-.08Zm-.54.12.37.45.14.68-.37-.14Zm-.54.05.31.49.09.7-.37-.17Zm-.54,0,.26.51v.71l-.31-.2Zm-.54-.05.2.54-.05.7-.32-.25Zm-.54-.12.17.57-.17.68-.28-.28Zm-.51-.17.09.57-.2.68-.25-.31Zm-.51-.22.06.59-.28.63-.23-.32Zm-.45-.26,0,.57-.37.62-.17-.34Zm-.45-.34-.09.6-.39.56-.17-.36Zm-.4-.34-.14.54-.48.54-.12-.37Zm-.37-.42-.2.56-.51.46-.08-.37Zm-.31-.43-.25.51-.57.43,0-.4Zm-.25-.48-.32.51-.62.34v-.4Zm-.23-.48-.37.45-.65.28.05-.39Zm-.17-.51-.4.39-.68.23.09-.37Zm-.12-.54-.45.37-.68.14.11-.37Zm-.05-.54-.48.31-.71.09.17-.37Zm0-.54-.51.26h-.71l.2-.34Zm.05-.54-.53.2-.71-.06.22-.31Zm.12-.54-.57.17-.68-.17.26-.28Zm.17-.51-.6.09-.65-.2.28-.25Zm.2-.51-.57.06-.65-.31.34-.2Zm.28-.45-.57,0-.62-.37.34-.17Zm.31-.45-.56-.09-.57-.39.37-.18Zm.37-.4-.57-.14-.51-.48.37-.12Zm.4-.37-.54-.2-.48-.51.39-.08Zm.45-.31-.54-.26-.39-.56.39,0Zm.45-.28-.48-.32-.34-.59h.37Zm.51-.2-.45-.37-.28-.65.37.05Zm.51-.17-.42-.43-.2-.65.37.09Zm.54-.12-.37-.45-.17-.68.37.11Zm.54,0-.34-.48L243,356l.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="239.17 353.68 239.51 353.51 239.8 353.65 240.11 353.43 240.39 353.54 240.68 353.31 241.02 353.4 241.3 353.12 241.58 353.17 241.78 352.86 242.12 352.89 242.29 352.58 242.63 352.55 242.77 352.21 243.11 352.18 243.25 351.81 243.57 351.73 243.62 351.38 243.94 351.24 243.99 350.9 244.28 350.73 244.28 350.37 244.56 350.19 244.5 349.83 244.79 349.6 244.7 349.26 244.96 348.98 244.81 348.69 245.04 348.41 244.9 348.07 245.07 347.79 244.9 347.53 245.04 347.19 244.81 346.91 244.96 346.6 244.7 346.34 244.79 345.97 244.5 345.77 244.56 345.4 244.28 345.21 244.28 344.87 243.99 344.7 243.94 344.33 243.62 344.19 243.57 343.85 243.25 343.76 243.11 343.42 242.77 343.36 242.63 343.02 242.29 343.02 242.12 342.71 241.78 342.71 241.58 342.43 241.3 342.46 241.02 342.2 240.68 342.29 240.39 342.03 240.11 342.14 239.8 341.95 239.51 342.09 239.17 341.92 238.86 342.09 238.58 341.95 238.27 342.14 237.95 342.03 237.7 342.29 237.36 342.2 237.08 342.46 236.79 342.43 236.59 342.71 236.25 342.71 236.08 343.02 235.72 343.02 235.6 343.36 235.26 343.42 235.12 343.76 234.81 343.85 234.75 344.19 234.41 344.33 234.38 344.7 234.1 344.87 234.1 345.21 233.82 345.4 233.87 345.77 233.59 345.97 233.67 346.34 233.39 346.6 233.56 346.91 233.33 347.19 233.48 347.53 233.31 347.79 233.48 348.07 233.33 348.41 233.56 348.69 233.39 348.98 233.67 349.26 233.59 349.6 233.87 349.83 233.82 350.19 234.1 350.37 234.1 350.73 234.38 350.9 234.41 351.24 234.75 351.38 234.81 351.73 235.12 351.81 235.26 352.18 235.6 352.21 235.72 352.55 236.08 352.58 236.25 352.89 236.59 352.86 236.79 353.17 237.08 353.12 237.36 353.4 237.7 353.31 237.95 353.54 238.27 353.43 238.58 353.65 238.86 353.51 239.17 353.68" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M243.69,360.69a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M243.69,360.69a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M243.69,363a.64.64,0,1,0-.63-.65.64.64,0,0,0,.63.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M331.08,367.66a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M331.08,367.66a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M326,357.09l-.28-.51v-.71l.34.2Zm.54.05-.23-.54.09-.7.31.22Zm.54.12-.17-.57L327,356l.28.25Zm.51.17-.12-.6.23-.65.25.28Zm.48.19,0-.56.28-.65.23.34Zm.48.29,0-.6.34-.59.2.34Zm.42.31.09-.57.43-.56.14.36Zm.43.37.14-.57.46-.51.11.37Zm.34.4.2-.54.54-.49.08.4Zm.34.45.26-.54.56-.4,0,.37Zm.26.45.31-.48.62-.37,0,.4Zm.22.51.37-.45.65-.28,0,.36Zm.17.51.4-.42.68-.2-.09.37Zm.12.54.45-.37.68-.17-.14.37Zm.05.54.48-.34.71-.06-.17.34Zm0,.54.51-.28h.71l-.2.34Zm-.05.54.53-.23.71.09-.25.31Zm-.12.51.57-.14.68.14-.26.28Zm-.17.54.57-.12.68.23-.31.25Zm-.22.48.59,0,.62.28-.31.23Zm-.26.48.57,0,.62.34-.34.2Zm-.34.42.6.09.56.43-.37.14Zm-.34.4.54.17.54.46-.37.11Zm-.43.37.57.2.46.54-.37.05Zm-.42.34.51.26.43.56-.4,0Zm-.48.26.51.31.34.62-.4,0Zm-.48.22.45.37.28.62-.39,0Zm-.51.17.39.4.23.68-.37-.09Zm-.54.12.37.45.14.68-.37-.14Zm-.54.05.31.48.09.71-.37-.17Zm-.54,0,.26.51v.71l-.32-.2Zm-.54-.05.2.53-.06.71-.31-.25Zm-.54-.12.17.57-.17.68-.28-.28Zm-.51-.17.09.57-.2.68-.26-.31Zm-.51-.22.06.59-.28.62-.23-.31Zm-.45-.26,0,.57-.37.62-.17-.34Zm-.45-.34-.09.6-.4.56-.17-.37Zm-.4-.34-.14.54-.49.54-.11-.37Zm-.37-.43-.2.57-.51.46-.08-.37Zm-.31-.42-.26.51-.56.43,0-.4Zm-.26-.48-.31.51-.62.34v-.4Zm-.22-.48-.37.45-.65.28.05-.39Zm-.17-.51-.4.39-.68.23.08-.37Zm-.12-.54-.45.37-.68.14.11-.37Zm-.05-.54-.49.31-.7.09.17-.37Zm0-.54-.51.26h-.71l.2-.35Zm.05-.54-.54.2-.7-.06.22-.31Zm.12-.54-.57.17-.68-.17.25-.28Zm.17-.51-.6.09-.65-.2.28-.26Zm.19-.51-.56.06-.65-.31.34-.2Zm.29-.45-.57,0-.62-.37.34-.17Zm.31-.45-.57-.09-.56-.4.36-.17Zm.37-.4-.57-.14-.51-.49.37-.11Zm.4-.37-.54-.2-.49-.51.4-.08Zm.45-.31-.54-.26-.4-.56.4,0Zm.45-.29-.48-.31-.34-.59h.37Zm.51-.19-.45-.37-.28-.65.36,0Zm.51-.17-.42-.43-.2-.65.37.08Zm.54-.12-.37-.45-.17-.68.37.11Zm.54-.05-.34-.49-.06-.7.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="321.15 353.54 321.49 353.37 321.77 353.51 322.09 353.29 322.37 353.4 322.65 353.17 322.99 353.26 323.28 352.97 323.56 353.03 323.76 352.72 324.1 352.75 324.27 352.43 324.61 352.41 324.75 352.07 325.09 352.04 325.23 351.67 325.55 351.58 325.6 351.24 325.91 351.1 325.97 350.76 326.25 350.59 326.25 350.22 326.54 350.05 326.48 349.69 326.76 349.46 326.68 349.12 326.93 348.83 326.79 348.55 327.02 348.27 326.88 347.93 327.05 347.64 326.88 347.39 327.02 347.05 326.79 346.76 326.93 346.45 326.68 346.2 326.76 345.83 326.48 345.63 326.54 345.26 326.25 345.06 326.25 344.72 325.97 344.55 325.91 344.19 325.6 344.04 325.55 343.7 325.23 343.62 325.09 343.28 324.75 343.22 324.61 342.88 324.27 342.88 324.1 342.57 323.76 342.57 323.56 342.29 323.28 342.31 322.99 342.06 322.65 342.14 322.37 341.89 322.09 342 321.77 341.8 321.49 341.95 321.15 341.78 320.84 341.95 320.56 341.8 320.24 342 319.93 341.89 319.68 342.14 319.34 342.06 319.05 342.31 318.77 342.29 318.57 342.57 318.23 342.57 318.06 342.88 317.69 342.88 317.58 343.22 317.24 343.28 317.1 343.62 316.79 343.7 316.73 344.04 316.39 344.19 316.36 344.55 316.08 344.72 316.08 345.06 315.79 345.26 315.85 345.63 315.57 345.83 315.65 346.2 315.37 346.45 315.54 346.76 315.31 347.05 315.45 347.39 315.28 347.64 315.45 347.93 315.31 348.27 315.54 348.55 315.37 348.83 315.65 349.12 315.57 349.46 315.85 349.69 315.79 350.05 316.08 350.22 316.08 350.59 316.36 350.76 316.39 351.1 316.73 351.24 316.79 351.58 317.1 351.67 317.24 352.04 317.58 352.07 317.69 352.41 318.06 352.43 318.23 352.75 318.57 352.72 318.77 353.03 319.05 352.97 319.34 353.26 319.68 353.17 319.93 353.4 320.24 353.29 320.56 353.51 320.84 353.37 321.15 353.54" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M325.67,360.54a1.72,1.72,0,1,0,1.72,1.71,1.72,1.72,0,0,0-1.72-1.71Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M325.67,360.54a1.72,1.72,0,1,0,1.72,1.71,1.72,1.72,0,0,0-1.72-1.71Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M325.67,362.9a.65.65,0,0,0,.65-.65.64.64,0,0,0-.65-.63.63.63,0,0,0-.63.63.64.64,0,0,0,.63.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M331,474.19a7.64,7.64,0,1,0-5.41,2.23,7.61,7.61,0,0,0,5.41-2.23Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M331,474.19a7.64,7.64,0,1,0-5.41,2.23,7.61,7.61,0,0,0,5.41-2.23Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M325.82,463.61l-.28-.51v-.71l.34.2Zm.54.06-.23-.54.09-.71.31.23Zm.54.11-.17-.56.14-.69.28.26Zm.51.17-.11-.59.22-.66.26.29Zm.48.2,0-.57.29-.65.22.34Zm.48.28,0-.59.34-.6.2.34Zm.43.32.08-.57.43-.57.14.37Zm.42.36.14-.56.46-.51.11.37Zm.34.4.2-.54.54-.48.08.4Zm.34.45.26-.53.56-.4,0,.37Zm.26.46.31-.48.62-.37,0,.39Zm.22.51.37-.46.66-.28-.06.37Zm.17.51.4-.43.68-.19-.08.36Zm.12.54.45-.37.68-.17-.14.37Zm.05.54.49-.34.71-.06-.17.34Zm0,.53.52-.28h.7l-.19.34Zm-.05.54.54-.22.71.08-.26.31Zm-.12.51.57-.14.68.14-.25.29Zm-.17.54.57-.11.68.23-.31.25Zm-.22.48.59,0,.63.28-.31.23Zm-.26.49.57,0,.62.34-.34.2Zm-.34.42.6.09.56.42-.36.14Zm-.34.4.54.17.54.45-.37.11Zm-.42.37.56.19.46.54-.37.06Zm-.43.34.51.25.43.57-.4,0Zm-.48.25.51.31.34.63-.4,0Zm-.48.23.45.37.29.62-.4,0Zm-.51.17.4.4.22.68-.37-.09Zm-.54.11.37.46.14.68-.37-.15Zm-.54.06.31.48.09.71-.37-.17Zm-.54,0,.26.51v.71l-.31-.2Zm-.54-.06.2.54-.05.71-.32-.26Zm-.53-.11.17.57-.17.68-.29-.29Zm-.51-.17.08.57-.2.68-.25-.32Zm-.52-.23.06.6-.28.62-.23-.31Zm-.45-.25,0,.56-.37.63-.17-.34Zm-.45-.34-.09.59-.39.57-.17-.37Zm-.4-.34-.14.53-.48.54-.12-.37Zm-.37-.43-.2.57-.51.45-.08-.37Zm-.31-.42-.25.51-.57.42,0-.4Zm-.25-.49-.32.51L320,472v-.39Zm-.23-.48-.37.46-.65.28.05-.4Zm-.17-.51-.4.4-.68.23.09-.37Zm-.11-.54L320,470l-.68.14.11-.37Zm-.06-.54-.48.32-.71.08.17-.37Zm0-.53-.51.25h-.71l.2-.34Zm.06-.54-.54.2-.71-.06.22-.31Zm.11-.54-.57.17-.68-.17.26-.28Zm.17-.51-.6.08-.65-.19.28-.26Zm.2-.51-.57.05-.65-.31.34-.2Zm.28-.46-.57,0-.62-.37.34-.17Zm.31-.45-.56-.08-.57-.4.37-.17Zm.37-.4-.57-.14-.51-.48.37-.11Zm.4-.36-.54-.2-.48-.51.39-.09Zm.45-.32-.54-.25-.39-.57.39,0Zm.45-.28-.48-.31-.34-.6h.37Zm.52-.2-.46-.37-.28-.65.37.06Zm.51-.17-.43-.42-.2-.66.37.09Zm.53-.11-.36-.45-.17-.69.36.12Zm.54-.06-.34-.48-.05-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="321.02 460.07 321.36 459.9 321.65 460.04 321.96 459.81 322.24 459.92 322.53 459.7 322.87 459.78 323.15 459.5 323.43 459.56 323.63 459.24 323.97 459.27 324.14 458.96 324.48 458.93 324.62 458.59 324.96 458.56 325.11 458.19 325.42 458.11 325.47 457.77 325.79 457.63 325.84 457.29 326.13 457.12 326.13 456.75 326.41 456.58 326.35 456.21 326.64 455.98 326.55 455.64 326.81 455.36 326.67 455.08 326.89 454.79 326.75 454.45 326.92 454.17 326.75 453.92 326.89 453.57 326.67 453.29 326.81 452.98 326.55 452.72 326.64 452.36 326.35 452.16 326.41 451.79 326.13 451.59 326.13 451.25 325.84 451.08 325.79 450.71 325.47 450.57 325.42 450.23 325.11 450.14 324.96 449.8 324.62 449.75 324.48 449.41 324.14 449.41 323.97 449.1 323.63 449.1 323.43 448.81 323.15 448.84 322.87 448.58 322.53 448.67 322.24 448.42 321.96 448.53 321.65 448.33 321.36 448.47 321.02 448.3 320.71 448.47 320.43 448.33 320.12 448.53 319.81 448.42 319.55 448.67 319.21 448.58 318.93 448.84 318.64 448.81 318.44 449.1 318.1 449.1 317.93 449.41 317.56 449.41 317.45 449.75 317.11 449.8 316.97 450.14 316.66 450.23 316.6 450.57 316.26 450.71 316.23 451.08 315.95 451.25 315.95 451.59 315.67 451.79 315.72 452.16 315.44 452.36 315.52 452.72 315.24 452.98 315.41 453.29 315.18 453.57 315.33 453.92 315.16 454.17 315.33 454.45 315.18 454.79 315.41 455.08 315.24 455.36 315.52 455.64 315.44 455.98 315.72 456.21 315.67 456.58 315.95 456.75 315.95 457.12 316.23 457.29 316.26 457.63 316.6 457.77 316.66 458.11 316.97 458.19 317.11 458.56 317.45 458.59 317.56 458.93 317.93 458.96 318.1 459.27 318.44 459.24 318.64 459.56 318.93 459.5 319.21 459.78 319.55 459.7 319.81 459.92 320.12 459.81 320.43 460.04 320.71 459.9 321.02 460.07" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M325.54,467.07a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M325.54,467.07a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M325.54,469.42a.64.64,0,1,0-.63-.65.64.64,0,0,0,.63.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
                         <g>
                             <path d="M417.48,474.07a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
                             <path d="M417.48,474.07a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
@@ -3104,218 +1600,9 @@ class App extends React.Component {
                             <path d="M412.39,518.62a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
                             <path d="M412.39,521a.64.64,0,1,0,0-1.27.62.62,0,0,0-.62.62.63.63,0,0,0,.62.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
                         </g>
-                        <g>
-                            <path d="M330.74,526.37a7.64,7.64,0,1,0-5.42,2.24,7.6,7.6,0,0,0,5.42-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M330.74,526.37a7.64,7.64,0,1,0-5.42,2.24,7.6,7.6,0,0,0,5.42-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M325.61,515.8l-.29-.51v-.71l.35.2Zm.54.05-.23-.53.09-.71.31.22Zm.54.12-.17-.57.14-.68.28.26Zm.51.17-.12-.6.23-.65.25.28Zm.48.2,0-.57.28-.65.23.34Zm.48.28,0-.6.34-.59.2.34Zm.42.31.09-.57.43-.56.14.37Zm.43.37.14-.57.46-.51.11.37Zm.34.4.2-.54.54-.48.08.39Zm.34.45.26-.54.56-.39,0,.36Zm.26.45.31-.48.62-.37,0,.4Zm.22.51.37-.45.65-.28-.05.37Zm.17.51.4-.42.68-.2-.09.37Zm.12.54.45-.37.68-.17-.14.37Zm.05.54.48-.34.71-.06-.17.35Zm0,.54L331,521h.71l-.2.34Zm-.05.54.53-.23.71.09-.25.31Zm-.12.51.57-.14.68.14-.26.28Zm-.17.54.57-.12.68.23-.31.26Zm-.22.48.59,0,.62.28-.31.23Zm-.26.48.57,0,.62.34-.34.2Zm-.34.43.6.08.56.43-.37.14Zm-.34.39.54.17.54.46-.37.11Zm-.43.37.57.2.46.54-.37.06Zm-.42.34.51.26.43.56-.4,0Zm-.48.26.51.31.34.62-.4,0Zm-.48.22.45.37.28.63-.39,0Zm-.51.17.39.4.23.68-.37-.08Zm-.54.12.37.45.14.68-.37-.14Zm-.54,0,.31.49.09.7-.37-.17Zm-.54,0,.25.51v.71l-.31-.2Zm-.54,0,.2.54-.06.7-.31-.25ZM324,526l.17.57-.17.68-.28-.28Zm-.51-.17.09.57-.2.68-.26-.31Zm-.51-.22.06.59-.28.63-.23-.32Zm-.45-.26,0,.57-.37.62-.17-.34Zm-.45-.34-.09.6-.4.56-.17-.36Zm-.4-.34-.14.54-.49.54-.11-.37Zm-.37-.42-.2.56-.51.46-.08-.37Zm-.31-.43-.26.51-.56.43,0-.4Zm-.26-.48-.31.51-.62.34v-.4Zm-.22-.48-.37.45-.65.28.05-.39Zm-.17-.51-.4.39-.68.23.08-.37Zm-.12-.54-.45.37-.68.14.11-.37Zm-.05-.54-.49.31-.7.09.17-.37Zm0-.54-.51.26H319l.2-.34Zm.05-.54-.54.2-.7-.06.22-.31Zm.12-.54-.57.17-.68-.17.25-.28Zm.17-.51-.6.09-.65-.2.28-.25Zm.19-.51-.56.06-.65-.31.34-.2Zm.29-.45-.57,0-.62-.37.34-.17Zm.31-.45-.57-.09-.56-.39.36-.17Zm.37-.4-.57-.14-.51-.48.37-.12Zm.4-.37-.54-.2-.49-.51.4-.08Zm.45-.31-.54-.26-.4-.56.4,0Zm.45-.28-.48-.32-.34-.59h.37Zm.51-.2-.45-.37-.28-.65.36,0ZM324,516l-.42-.43-.2-.65.37.09Zm.54-.12-.37-.45-.17-.68.37.11Zm.54-.05-.34-.48-.06-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="320.81 512.25 321.15 512.08 321.44 512.22 321.75 512 322.03 512.11 322.31 511.88 322.65 511.97 322.94 511.69 323.22 511.74 323.42 511.43 323.76 511.46 323.93 511.15 324.27 511.12 324.41 510.78 324.75 510.75 324.89 510.38 325.2 510.3 325.26 509.96 325.57 509.81 325.63 509.47 325.91 509.3 325.91 508.94 326.2 508.76 326.14 508.4 326.42 508.17 326.34 507.83 326.59 507.55 326.45 507.26 326.68 506.98 326.54 506.64 326.71 506.36 326.54 506.1 326.68 505.76 326.45 505.48 326.59 505.17 326.34 504.91 326.42 504.54 326.14 504.34 326.2 503.97 325.91 503.78 325.91 503.44 325.63 503.27 325.57 502.9 325.26 502.76 325.2 502.42 324.89 502.33 324.75 501.99 324.41 501.93 324.27 501.59 323.93 501.59 323.76 501.28 323.42 501.28 323.22 501 322.94 501.03 322.65 500.77 322.31 500.86 322.03 500.6 321.75 500.71 321.44 500.52 321.15 500.66 320.81 500.49 320.5 500.66 320.22 500.52 319.9 500.71 319.59 500.6 319.34 500.86 319 500.77 318.71 501.03 318.43 501 318.23 501.28 317.89 501.28 317.72 501.59 317.35 501.59 317.24 501.93 316.9 501.99 316.76 502.33 316.45 502.42 316.39 502.76 316.05 502.9 316.02 503.27 315.74 503.44 315.74 503.78 315.45 503.97 315.51 504.34 315.23 504.54 315.31 504.91 315.03 505.17 315.2 505.48 314.97 505.76 315.11 506.1 314.94 506.36 315.11 506.64 314.97 506.98 315.2 507.26 315.03 507.55 315.31 507.83 315.23 508.17 315.51 508.4 315.45 508.76 315.74 508.94 315.74 509.3 316.02 509.47 316.05 509.81 316.39 509.96 316.45 510.3 316.76 510.38 316.9 510.75 317.24 510.78 317.35 511.12 317.72 511.15 317.89 511.46 318.23 511.43 318.43 511.74 318.71 511.69 319 511.97 319.34 511.88 319.59 512.11 319.9 512 320.22 512.22 320.5 512.08 320.81 512.25" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M325.32,519.26a1.72,1.72,0,1,0,1.73,1.7,1.7,1.7,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M325.32,519.26a1.72,1.72,0,1,0,1.73,1.7,1.7,1.7,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M325.32,521.61a.64.64,0,1,0,0-1.28.64.64,0,0,0,0,1.28Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M249.61,526.51a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M249.61,526.51a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M244.48,515.94l-.28-.51v-.71l.34.2Zm.54.06-.23-.54.09-.71.31.23Zm.54.11-.17-.57.14-.68.28.26Zm.51.17-.12-.6.23-.65.26.29Zm.48.2,0-.57.29-.65.22.34Zm.48.28,0-.59.34-.6.2.34Zm.43.31.08-.56.43-.57.14.37Zm.42.37.14-.57.46-.51.11.37Zm.34.4.2-.54.54-.48.08.4Zm.34.45.26-.54.56-.39,0,.37Zm.26.46.31-.49.62-.36,0,.39Zm.22.51.37-.46.66-.28-.06.37Zm.17.51.4-.43.68-.2-.08.37Zm.12.53.45-.36.68-.17-.14.36Zm0,.54.49-.34.71,0-.17.34Zm0,.54.52-.28h.7l-.19.34Zm0,.54.54-.23.71.09-.26.31Zm-.12.51.57-.14.68.14-.25.28ZM249,523l.57-.11.68.22-.31.26Zm-.22.48.59,0,.63.29-.32.22Zm-.26.48.57,0,.62.34-.34.2Zm-.34.43.6.08.56.43L249,525Zm-.34.4.54.17.54.45-.37.11Zm-.42.36.56.2.46.54-.37.06Zm-.43.34.51.26.43.57-.4,0Zm-.48.26.51.31.34.62-.4,0Zm-.48.23.45.36.29.63-.4,0Zm-.51.17.39.39.23.68-.37-.08Zm-.54.11.37.45.14.68-.37-.14Zm-.54.06.31.48.09.71-.37-.17Zm-.54,0,.26.51v.7l-.31-.19Zm-.54-.06.2.54,0,.71-.32-.26Zm-.53-.11.17.56-.17.68-.29-.28Zm-.52-.17.09.56-.2.68-.25-.31Zm-.51-.23.06.59-.28.63-.23-.31Zm-.45-.26,0,.57-.37.62-.17-.34Zm-.45-.34-.09.6-.39.57-.17-.37Zm-.4-.34-.14.54-.48.54-.12-.37Zm-.37-.42-.2.57-.51.45-.08-.37Zm-.31-.43-.25.51-.57.43,0-.4Zm-.25-.48-.32.51-.62.34v-.4Zm-.23-.48-.37.45-.65.29,0-.4Zm-.17-.51-.4.4-.68.22.09-.37Zm-.11-.54-.46.37-.68.14.11-.37Zm-.06-.54-.48.31-.71.09.17-.37Zm0-.54-.51.26h-.71l.2-.34Zm.06-.54-.54.2-.71,0,.22-.32Zm.11-.53-.57.17-.68-.17.26-.29Zm.17-.51-.6.08-.65-.2.28-.25Zm.2-.51-.57,0-.65-.31.34-.2Zm.28-.46-.57,0-.62-.36.34-.17Zm.31-.45-.56-.09-.57-.39.37-.17Zm.37-.4-.57-.14-.51-.48.37-.12Zm.4-.37-.54-.2-.48-.51.39-.08Zm.45-.31-.54-.25-.39-.57.39,0Zm.45-.28-.48-.31-.34-.6h.37Zm.51-.2-.45-.37-.28-.65.37.06Zm.52-.17-.43-.43-.2-.65.37.09Zm.53-.11-.36-.46-.17-.68.36.12Zm.54-.06-.34-.48,0-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="239.68 512.39 240.02 512.22 240.31 512.37 240.62 512.14 240.9 512.25 241.19 512.02 241.53 512.11 241.81 511.83 242.09 511.88 242.29 511.57 242.63 511.6 242.8 511.29 243.14 511.26 243.28 510.92 243.62 510.89 243.76 510.52 244.08 510.44 244.13 510.1 244.45 509.96 244.5 509.62 244.79 509.44 244.79 509.08 245.07 508.91 245.01 508.54 245.3 508.31 245.21 507.97 245.47 507.69 245.32 507.4 245.55 507.12 245.41 506.78 245.58 506.5 245.41 506.24 245.55 505.9 245.32 505.62 245.47 505.31 245.21 505.05 245.3 504.68 245.01 504.49 245.07 504.12 244.79 503.92 244.79 503.58 244.5 503.41 244.45 503.04 244.13 502.9 244.08 502.56 243.76 502.47 243.62 502.13 243.28 502.07 243.14 501.74 242.8 501.74 242.63 501.42 242.29 501.42 242.09 501.14 241.81 501.17 241.53 500.91 241.19 501 240.9 500.74 240.62 500.86 240.31 500.66 240.02 500.8 239.68 500.63 239.37 500.8 239.09 500.66 238.78 500.86 238.47 500.74 238.21 501 237.87 500.91 237.59 501.17 237.3 501.14 237.1 501.42 236.76 501.42 236.59 501.74 236.22 501.74 236.11 502.07 235.77 502.13 235.63 502.47 235.32 502.56 235.26 502.9 234.92 503.04 234.89 503.41 234.61 503.58 234.61 503.92 234.33 504.12 234.38 504.49 234.1 504.68 234.18 505.05 233.9 505.31 234.07 505.62 233.84 505.9 233.99 506.24 233.82 506.5 233.99 506.78 233.84 507.12 234.07 507.4 233.9 507.69 234.18 507.97 234.1 508.31 234.38 508.54 234.33 508.91 234.61 509.08 234.61 509.44 234.89 509.62 234.92 509.96 235.26 510.1 235.32 510.44 235.63 510.52 235.77 510.89 236.11 510.92 236.22 511.26 236.59 511.29 236.76 511.6 237.1 511.57 237.3 511.88 237.59 511.83 237.87 512.11 238.21 512.02 238.47 512.25 238.78 512.14 239.09 512.37 239.37 512.22 239.68 512.39" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M244.2,519.4a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M244.2,519.4a1.72,1.72,0,0,0,0,3.43,1.72,1.72,0,1,0,0-3.43Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M244.2,521.75a.64.64,0,1,0-.63-.65.64.64,0,0,0,.63.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M188.44,526.37a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M188.44,526.37a7.64,7.64,0,1,0-5.41,2.24,7.6,7.6,0,0,0,5.41-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M183.31,515.8l-.28-.51v-.71l.34.2Zm.54.05-.23-.53.09-.71.31.22Zm.54.12-.17-.57.14-.68.28.26Zm.51.17-.12-.6.23-.65.26.28Zm.48.2,0-.57.28-.65.23.34Zm.48.28,0-.6.34-.59.2.34Zm.43.31.08-.57.43-.56.14.37Zm.42.37.14-.57.46-.51.11.37Zm.34.4.2-.54.54-.48.08.39Zm.34.45.26-.54.56-.39,0,.36Zm.26.45.31-.48.62-.37,0,.4Zm.22.51.37-.45.65-.28,0,.37Zm.17.51.4-.42.68-.2-.08.37Zm.12.54.45-.37.68-.17-.14.37Zm.05.54.49-.34.7-.06-.17.35Zm0,.54.51-.28h.71l-.2.34Zm-.05.54.54-.23.7.09-.25.31Zm-.12.51.57-.14.68.14-.25.28Zm-.17.54.57-.12.68.23-.31.26Zm-.22.48.59,0,.63.28-.32.23Zm-.26.48.57,0,.62.34-.34.2Zm-.34.43.6.08.56.43-.37.14Zm-.34.39.54.17.54.46-.37.11Zm-.42.37.56.2.46.54-.37.06Zm-.43.34.51.26.43.56-.4,0Zm-.48.26.51.31.34.62-.4,0Zm-.48.22.45.37.28.63-.39,0Zm-.51.17.39.4.23.68-.37-.08Zm-.54.12.37.45.14.68-.37-.14Zm-.54,0,.31.49.09.7-.37-.17Zm-.54,0,.26.51v.71l-.32-.2Zm-.54,0,.2.54-.06.7-.31-.25Zm-.54-.12.17.57-.17.68-.28-.28Zm-.51-.17.09.57-.2.68-.26-.31Zm-.51-.22.06.59-.28.63-.23-.32Zm-.45-.26,0,.57-.37.62-.17-.34Zm-.45-.34-.09.6-.4.56-.17-.36Zm-.4-.34-.14.54-.48.54-.12-.37Zm-.37-.42-.2.56-.51.46-.08-.37Zm-.31-.43-.26.51-.56.43,0-.4Zm-.26-.48-.31.51-.62.34v-.4Zm-.22-.48-.37.45-.65.28.05-.39Zm-.17-.51-.4.39-.68.23.08-.37Zm-.12-.54-.45.37-.68.14.11-.37Zm0-.54-.49.31-.7.09.17-.37Zm0-.54-.51.26h-.71l.2-.34Zm0-.54-.54.2-.7-.06.22-.31Zm.12-.54-.57.17-.68-.17.25-.28Zm.17-.51-.6.09L177,519l.28-.25Zm.2-.51-.57.06-.65-.31.34-.2Zm.28-.45-.57,0-.62-.37.34-.17Zm.31-.45-.57-.09-.56-.39.37-.17Zm.37-.4-.57-.14-.51-.48.37-.12Zm.4-.37-.54-.2-.48-.51.39-.08Zm.45-.31-.54-.26-.4-.56.4,0Zm.45-.28-.48-.32-.34-.59h.37Zm.51-.2-.45-.37-.28-.65.36,0Zm.51-.17-.42-.43-.2-.65.37.09Zm.54-.12-.37-.45-.17-.68.37.11Zm.54-.05-.34-.48-.06-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="178.51 512.25 178.85 512.08 179.13 512.22 179.45 512 179.73 512.11 180.01 511.88 180.35 511.97 180.64 511.69 180.92 511.74 181.12 511.43 181.46 511.46 181.63 511.15 181.97 511.12 182.11 510.78 182.45 510.75 182.59 510.38 182.91 510.3 182.96 509.96 183.27 509.81 183.33 509.47 183.61 509.3 183.61 508.94 183.9 508.76 183.84 508.4 184.12 508.17 184.04 507.83 184.29 507.55 184.15 507.26 184.38 506.98 184.24 506.64 184.41 506.36 184.24 506.1 184.38 505.76 184.15 505.48 184.29 505.17 184.04 504.91 184.12 504.54 183.84 504.34 183.9 503.97 183.61 503.78 183.61 503.44 183.33 503.27 183.27 502.9 182.96 502.76 182.91 502.42 182.59 502.33 182.45 501.99 182.11 501.93 181.97 501.59 181.63 501.59 181.46 501.28 181.12 501.28 180.92 501 180.64 501.03 180.35 500.77 180.01 500.86 179.73 500.6 179.45 500.71 179.13 500.52 178.85 500.66 178.51 500.49 178.2 500.66 177.92 500.52 177.6 500.71 177.29 500.6 177.04 500.86 176.7 500.77 176.41 501.03 176.13 501 175.93 501.28 175.59 501.28 175.42 501.59 175.05 501.59 174.94 501.93 174.6 501.99 174.46 502.33 174.15 502.42 174.09 502.76 173.75 502.9 173.72 503.27 173.44 503.44 173.44 503.78 173.15 503.97 173.21 504.34 172.93 504.54 173.01 504.91 172.73 505.17 172.9 505.48 172.67 505.76 172.81 506.1 172.64 506.36 172.81 506.64 172.67 506.98 172.9 507.26 172.73 507.55 173.01 507.83 172.93 508.17 173.21 508.4 173.15 508.76 173.44 508.94 173.44 509.3 173.72 509.47 173.75 509.81 174.09 509.96 174.15 510.3 174.46 510.38 174.6 510.75 174.94 510.78 175.05 511.12 175.42 511.15 175.59 511.46 175.93 511.43 176.13 511.74 176.41 511.69 176.7 511.97 177.04 511.88 177.29 512.11 177.6 512 177.92 512.22 178.2 512.08 178.51 512.25" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M183,519.26a1.72,1.72,0,1,0,1.72,1.7,1.71,1.71,0,0,0-1.72-1.7Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M183,519.26a1.72,1.72,0,1,0,1.72,1.7,1.71,1.71,0,0,0-1.72-1.7Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M183,521.61a.64.64,0,1,0-.63-.65.64.64,0,0,0,.63.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M120.07,526.24a7.64,7.64,0,1,0-5.42,2.24,7.58,7.58,0,0,0,5.42-2.24Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M120.07,526.24a7.64,7.64,0,1,0-5.42,2.24,7.58,7.58,0,0,0,5.42-2.24Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M114.94,515.67l-.29-.51v-.71l.34.2Zm.54.06-.23-.54.08-.71.32.23Zm.53.11-.17-.57.15-.68.28.26Zm.51.17-.11-.59.23-.66.25.29Zm.49.2,0-.57.28-.65.23.34Zm.48.28,0-.59.34-.6.2.34Zm.42.31.09-.56.42-.57.15.37Zm.43.37.14-.56.45-.51.12.36Zm.34.4.2-.54.54-.48.08.4Zm.34.45.25-.54.57-.39,0,.37Zm.25.46.32-.49.62-.36,0,.39Zm.23.51.37-.46.65-.28,0,.37Zm.17.51.4-.43.68-.2-.09.37Zm.11.54.46-.37.68-.17-.14.37Zm.06.53.48-.34.71-.05-.17.34Zm0,.54.51-.28h.71l-.2.34Zm-.06.54.54-.23.71.09-.25.31Zm-.11.51.57-.14.68.14-.26.29Zm-.17.54.57-.11.68.22-.31.26Zm-.23.48.6,0,.62.29-.31.22Zm-.25.48.57,0,.62.34-.34.2Zm-.34.43.59.08.57.43-.37.14Zm-.34.4.54.17.54.45-.37.11Zm-.43.36.57.2.45.54-.36.06Zm-.42.34.51.26.42.57-.39,0Zm-.48.26.51.31.34.63-.4,0Zm-.49.23.46.37.28.62-.39,0Zm-.51.17.4.39.23.68-.37-.08Zm-.53.11.36.45.15.68-.37-.14Zm-.54.06.31.48.08.71L115,527Zm-.54,0,.25.51v.71l-.31-.2Zm-.54-.06.2.54-.06.71-.31-.26Zm-.54-.11.17.56-.17.68-.28-.28Zm-.51-.17.09.56-.2.68-.26-.31Zm-.51-.23.06.6-.29.62-.22-.31Zm-.45-.26,0,.57-.37.63-.17-.34Zm-.46-.34-.08.6-.4.57-.17-.37Zm-.39-.34-.14.54-.49.54-.11-.37Zm-.37-.42-.2.57-.51.45-.08-.37Zm-.31-.43-.26.51-.56.43,0-.4Zm-.26-.48-.31.51-.62.34v-.39Zm-.22-.48-.37.45-.66.29.06-.4Zm-.17-.51-.4.4-.68.22.08-.36Zm-.12-.54-.45.37-.68.14.11-.37Zm0-.54-.49.31-.71.09.17-.37Zm0-.54-.52.26h-.7l.19-.34Zm0-.53-.54.19-.71-.05.23-.31Zm.12-.54-.57.17-.68-.17.25-.29Zm.17-.51-.6.08-.65-.2.28-.25Zm.19-.51-.56,0-.66-.31.34-.2Zm.29-.46-.57,0-.62-.36.34-.17Zm.31-.45-.57-.09-.56-.39.36-.17Zm.37-.4-.57-.14-.51-.48.37-.11Zm.39-.37-.53-.19-.49-.51.4-.09Zm.46-.31-.54-.25-.4-.57.4,0Zm.45-.28-.48-.31-.34-.6h.37Zm.51-.2-.45-.37-.29-.65.37.06Zm.51-.17-.42-.42-.2-.66.37.09Zm.54-.11-.37-.46-.17-.68.37.12Zm.54-.06-.34-.48-.06-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="110.14 512.12 110.48 511.95 110.76 512.1 111.08 511.87 111.36 511.98 111.64 511.76 111.98 511.84 112.27 511.56 112.55 511.61 112.75 511.3 113.09 511.33 113.26 511.02 113.6 510.99 113.74 510.65 114.08 510.62 114.22 510.25 114.53 510.17 114.59 509.83 114.9 509.69 114.96 509.35 115.24 509.18 115.24 508.81 115.53 508.64 115.47 508.27 115.75 508.04 115.67 507.7 115.92 507.42 115.78 507.13 116.01 506.85 115.87 506.51 116.04 506.23 115.87 505.97 116.01 505.63 115.78 505.35 115.92 505.04 115.67 504.78 115.75 504.41 115.47 504.21 115.53 503.85 115.24 503.65 115.24 503.31 114.96 503.14 114.9 502.77 114.59 502.63 114.53 502.29 114.22 502.2 114.08 501.86 113.74 501.81 113.6 501.47 113.26 501.47 113.09 501.15 112.75 501.15 112.55 500.87 112.27 500.9 111.98 500.64 111.64 500.73 111.36 500.47 111.08 500.59 110.76 500.39 110.48 500.53 110.14 500.36 109.83 500.53 109.55 500.39 109.23 500.59 108.92 500.47 108.67 500.73 108.33 500.64 108.04 500.9 107.76 500.87 107.56 501.15 107.22 501.15 107.05 501.47 106.68 501.47 106.57 501.81 106.23 501.86 106.09 502.2 105.78 502.29 105.72 502.63 105.38 502.77 105.35 503.14 105.07 503.31 105.07 503.65 104.78 503.85 104.84 504.21 104.56 504.41 104.64 504.78 104.36 505.04 104.53 505.35 104.3 505.63 104.44 505.97 104.27 506.23 104.44 506.51 104.3 506.85 104.53 507.13 104.36 507.42 104.64 507.7 104.56 508.04 104.84 508.27 104.78 508.64 105.07 508.81 105.07 509.18 105.35 509.35 105.38 509.69 105.72 509.83 105.78 510.17 106.09 510.25 106.23 510.62 106.57 510.65 106.68 510.99 107.05 511.02 107.22 511.33 107.56 511.3 107.76 511.61 108.04 511.56 108.33 511.84 108.67 511.76 108.92 511.98 109.23 511.87 109.55 512.1 109.83 511.95 110.14 512.12" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M114.65,519.13a1.72,1.72,0,1,0,1.73,1.7,1.7,1.7,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M114.65,519.13a1.72,1.72,0,1,0,1.73,1.7,1.7,1.7,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M114.65,521.48a.64.64,0,1,0,0-1.27.62.62,0,0,0-.62.62.63.63,0,0,0,.62.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
-                        <g>
-                            <path d="M41.07,526a7.64,7.64,0,1,0-13-5.41,7.64,7.64,0,0,0,13,5.41Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#141414" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="1.67"/>
-                            <path d="M41.07,526a7.64,7.64,0,1,0-13-5.41,7.64,7.64,0,0,0,13,5.41Z" transform="translate(-4.51 -14.6)" fill="#424242" fillRule="evenodd"/>
-                            <path d="M35.94,515.4l-.29-.51v-.71l.34.2Zm.53.06-.22-.54.08-.71.31.23Zm.54.11-.17-.57.14-.68.29.26Zm.51.17-.11-.59.23-.66.25.29Zm.49.2,0-.57.28-.65.23.34Zm.48.28,0-.59.34-.6.19.34Zm.42.31L39,516l.42-.57.14.37Zm.43.37.14-.56.45-.51.12.36Zm.34.4.2-.54.53-.48.09.4Zm.34.45.25-.53.57-.4,0,.37Zm.25.46.31-.48.63-.37,0,.39Zm.23.51.37-.46.65-.28-.06.37Zm.17.51.4-.43.68-.2-.09.37Zm.11.54.46-.37.68-.17-.14.37Zm.06.53.48-.34.71-.05-.17.34Zm0,.54.51-.28h.71l-.2.34Zm-.06.54.54-.22.71.08-.25.31Zm-.11.51.57-.14.68.14-.26.29Zm-.17.54.57-.11.68.22-.31.26Zm-.23.48.6,0,.62.29-.31.22Zm-.25.48.56,0,.63.34-.34.2Zm-.34.43.59.08.57.43-.37.14Zm-.34.4.54.17.53.45-.36.11Zm-.43.37.57.19.45.54-.37.06Zm-.42.34.51.25.42.57-.39,0Zm-.48.25.51.31.34.63-.4,0Zm-.49.23.46.37.28.62-.4,0Zm-.51.17.4.39.23.68-.37-.08Zm-.54.11.37.45.14.68-.36-.14Zm-.53.06.31.48.08.71-.37-.17Zm-.54,0,.25.51V527l-.31-.2Zm-.54-.06.2.54-.06.71-.31-.26Zm-.54-.11.17.56-.17.68-.28-.28Zm-.51-.17.09.56-.2.68-.26-.31Zm-.51-.23.06.6-.29.62-.22-.31Zm-.45-.25,0,.56-.37.63-.17-.34Zm-.46-.34-.08.59-.4.57-.17-.37Zm-.39-.34-.15.53-.48.54-.11-.37Zm-.37-.43-.2.57-.51.45-.09-.37Zm-.31-.43-.26.51-.57.43,0-.4Zm-.26-.48-.31.51-.63.34v-.39Zm-.23-.48-.36.45-.66.29.06-.4Zm-.17-.51-.39.4-.68.22.08-.36Zm-.11-.54-.45.37-.68.14.11-.37Zm-.06-.54-.48.32-.71.08.17-.37Zm0-.54-.51.26h-.71l.2-.34Zm.06-.53L30,520l-.71-.05.23-.31Zm.11-.54-.56.17-.68-.17.25-.29Zm.17-.51-.59.08-.65-.2.28-.25Zm.2-.51-.56,0-.66-.31.34-.2Zm.29-.46-.57,0-.63-.37.35-.17Zm.31-.45-.57-.08-.57-.4.37-.17Zm.37-.4-.57-.14-.51-.48.37-.11Zm.39-.37-.54-.19-.48-.51.4-.09Zm.46-.31-.54-.25-.4-.57.4,0Zm.45-.28-.48-.31-.34-.6h.37Zm.51-.2-.45-.37-.29-.65.37.06Zm.51-.17-.42-.42-.2-.66.37.09Zm.54-.11-.37-.46-.17-.68.37.12Zm.54-.06-.34-.48-.06-.71.34.17Z" transform="translate(-4.51 -14.6)" fill="gray" fillRule="evenodd"/>
-                            <polygon points="31.14 511.86 31.48 511.69 31.76 511.83 32.07 511.6 32.36 511.71 32.64 511.49 32.98 511.57 33.27 511.29 33.55 511.35 33.75 511.03 34.09 511.06 34.26 510.75 34.6 510.72 34.74 510.38 35.08 510.35 35.22 509.98 35.53 509.9 35.59 509.56 35.9 509.42 35.96 509.08 36.24 508.91 36.24 508.54 36.52 508.37 36.47 508 36.75 507.77 36.67 507.43 36.92 507.15 36.78 506.87 37.01 506.58 36.87 506.24 37.03 505.96 36.87 505.7 37.01 505.36 36.78 505.08 36.92 504.77 36.67 504.51 36.75 504.14 36.47 503.95 36.52 503.58 36.24 503.38 36.24 503.04 35.96 502.87 35.9 502.5 35.59 502.36 35.53 502.02 35.22 501.93 35.08 501.59 34.74 501.54 34.6 501.2 34.26 501.2 34.09 500.88 33.75 500.88 33.55 500.6 33.27 500.63 32.98 500.37 32.64 500.46 32.36 500.2 32.07 500.32 31.76 500.12 31.48 500.26 31.14 500.09 30.83 500.26 30.54 500.12 30.23 500.32 29.92 500.2 29.66 500.46 29.32 500.37 29.04 500.63 28.76 500.6 28.56 500.88 28.22 500.88 28.05 501.2 27.68 501.2 27.57 501.54 27.23 501.59 27.09 501.93 26.77 502.02 26.72 502.36 26.38 502.5 26.35 502.87 26.07 503.04 26.07 503.38 25.78 503.58 25.84 503.95 25.55 504.14 25.64 504.51 25.36 504.77 25.53 505.08 25.3 505.36 25.44 505.7 25.27 505.96 25.44 506.24 25.3 506.58 25.53 506.87 25.36 507.15 25.64 507.43 25.55 507.77 25.84 508 25.78 508.37 26.07 508.54 26.07 508.91 26.35 509.08 26.38 509.42 26.72 509.56 26.77 509.9 27.09 509.98 27.23 510.35 27.57 510.38 27.68 510.72 28.05 510.75 28.22 511.06 28.56 511.03 28.76 511.35 29.04 511.29 29.32 511.57 29.66 511.49 29.92 511.71 30.23 511.6 30.54 511.83 30.83 511.69 31.14 511.86" fill="#333" stroke="#333" strokeMiterlimit="10" strokeWidth="0.51" fillRule="evenodd"/>
-                            <path d="M35.65,518.86a1.72,1.72,0,1,0,1.73,1.7,1.7,1.7,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="#545454" fillRule="evenodd"/>
-                            <path d="M35.65,518.86a1.72,1.72,0,1,0,1.73,1.7,1.7,1.7,0,0,0-1.73-1.7Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#2f2f30" strokeMiterlimit="10" strokeWidth="0.23"/>
-                            <path d="M35.65,521.21a.64.64,0,1,0,0-1.27.62.62,0,0,0-.62.62.63.63,0,0,0,.62.65Z" transform="translate(-4.51 -14.6)" fill="#2f2f30" fillRule="evenodd"/>
-                        </g>
                     </g>			
                     
                     <g id="indicators">
-                        <g id="tank_1_indicator" onDoubleClick={this.setTankQuantity}>
-                            <g id="tank_1_indicator_back">
-                                <path d="M56.91,373.2a24,24,0,1,1-24,24.05,24.06,24.06,0,0,1,24-24.05Zm0,21.93a2.11,2.11,0,1,1,0,4.21,2.11,2.11,0,0,1,0-4.21Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-19)"/>
-                                <path d="M56.91,374.81A22.43,22.43,0,1,1,34.5,397.25a22.45,22.45,0,0,1,22.41-22.44Zm0,20.46a2,2,0,1,1,0,3.93,2,2,0,0,1,0-3.93Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-20)"/>
-                            </g>
-                            <g id="tank_1_indicator_screws">
-                                <g>
-                                <polygon points="62.67 382.19 63.27 381.33 62.56 383.94 61.99 383.77 62.67 382.19" fill="#595959" fillRule="evenodd"/>
-                                <path d="M66,397.86a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58a1.45,1.45,0,0,1-.54-.51Zm1.81-1.93a1.94,1.94,0,0,1,.29.23,1.39,1.39,0,0,1-1,2.38Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                                </g>
-                                <g>
-                                <polygon points="42.88 382.19 43.47 381.33 42.76 383.94 42.2 383.77 42.88 382.19" fill="#595959" fillRule="evenodd"/>
-                                <path d="M46.17,397.86a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58a1.45,1.45,0,0,1-.54-.51ZM48,395.93a2.6,2.6,0,0,1,.28.23,1.39,1.39,0,0,1-.26,2.18,1.36,1.36,0,0,1-.73.2Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                                </g>
-                            </g>
-                            <g id="tank_1_indicator_nos">
-                                <text transform="translate(48.13 374.22)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FUEL</text>
-                                <text transform="translate(44.3 378.05)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">QUANTITY</text>
-                                <text transform="translate(44.3 387.99)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">LBS X 1000</text>
-                                <text transform="translate(45.83 397.94)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">0</text>
-                                <text transform="translate(38.94 393.35)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">1</text>
-                                <text transform="translate(35.89 385.7)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">2</text>
-                                <text transform="translate(37.42 376.51)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">3</text>
-                                <text transform="translate(43.53 370.39)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">4</text>
-                                <text transform="translate(51.95 368.85)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">5</text>
-                                <text transform="translate(59.6 371.17)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">6</text>
-                                <text transform="translate(64.95 376.51)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">7</text>
-                                <text transform="translate(67.24 385.7)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">8</text>
-                                <text transform="translate(63.42 393.35)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">9</text>
-                            </g>
-                            <g id="tank_1_indicator_marks">
-                                <line x1="68.14" y1="374.84" x2="71.72" y2="373.11" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="69.82" y1="384.34" x2="73.76" y2="384.76" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="66.22" y1="393.3" x2="69.34" y2="395.73" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="68.43" y1="372.4" x2="70.64" y2="371.02" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="70.27" y1="376.2" x2="72.74" y2="375.32" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="70.87" y1="378.22" x2="73.39" y2="377.62" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="71.23" y1="380.28" x2="73.81" y2="380" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="71.35" y1="382.41" x2="73.96" y2="382.38" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="70.89" y1="386.58" x2="73.45" y2="387.14" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="70.33" y1="388.62" x2="72.79" y2="389.47" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="69.53" y1="390.57" x2="71.89" y2="391.68" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="68.54" y1="392.42" x2="70.75" y2="393.78" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="65.93" y1="395.73" x2="67.8" y2="397.55" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="64.37" y1="397.15" x2="66.02" y2="399.16" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="62.67" y1="398.4" x2="64.06" y2="400.58" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="60.83" y1="399.42" x2="61.99" y2="401.77" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="46.43" y1="398.97" x2="45.07" y2="402.68" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="38.64" y1="393.3" x2="35.52" y2="395.73" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="35.01" y1="384.37" x2="31.07" y2="384.76" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="36.68" y1="374.84" x2="33.14" y2="373.11" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="43.14" y1="367.67" x2="41.05" y2="364.33" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="52.41" y1="365.03" x2="52.41" y2="361.07" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="61.68" y1="367.67" x2="63.78" y2="364.33" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="35.35" y1="390.49" x2="33" y2="391.59" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="34.58" y1="388.53" x2="32.12" y2="389.38" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="34.02" y1="386.49" x2="31.46" y2="387.06" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="33.59" y1="382.33" x2="30.98" y2="382.3" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="33.73" y1="380.2" x2="31.12" y2="379.89" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="34.1" y1="378.13" x2="31.55" y2="377.54" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="34.7" y1="376.12" x2="32.23" y2="375.24" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="36.54" y1="372.32" x2="34.36" y2="370.93" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="37.79" y1="370.62" x2="35.74" y2="369" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="39.2" y1="369.06" x2="37.36" y2="367.22" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="40.76" y1="367.67" x2="39.15" y2="365.63" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="44.33" y1="365.43" x2="43.23" y2="363.08" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="46.29" y1="364.64" x2="45.44" y2="362.17" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="48.33" y1="364.07" x2="47.74" y2="361.52" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="50.4" y1="363.7" x2="50.12" y2="361.12" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="54.62" y1="363.73" x2="54.91" y2="361.15" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="56.69" y1="364.07" x2="57.26" y2="361.55" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="58.73" y1="364.67" x2="59.58" y2="362.2" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="60.66" y1="365.49" x2="61.8" y2="363.14" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="64.23" y1="367.73" x2="65.85" y2="365.69" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="65.82" y1="369.12" x2="67.63" y2="367.27" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="67.21" y1="370.7" x2="69.25" y2="369.06" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="44.02" y1="399.39" x2="42.86" y2="401.71" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="42.21" y1="398.34" x2="40.79" y2="400.52" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="40.51" y1="397.09" x2="38.86" y2="399.11" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="38.95" y1="395.68" x2="37.08" y2="397.49" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="36.37" y1="392.36" x2="34.13" y2="393.72" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            </g>
-                            
-                        </g>
-
-                        <g id="tank_2_indicator" onDoubleClick={this.setTankQuantity}>
-                            <g id="tank_2_indicator_back">
-                                <path d="M133.8,373.2a24,24,0,1,1-24,24.05,24.06,24.06,0,0,1,24-24.05Zm0,21.93a2.11,2.11,0,1,1,0,4.21,2.11,2.11,0,0,1,0-4.21Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-17)"/>
-                                <path d="M133.8,374.81a22.43,22.43,0,1,1-22.41,22.44,22.45,22.45,0,0,1,22.41-22.44Zm0,20.46a2,2,0,1,1,0,3.93,2,2,0,0,1,0-3.93Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-18)"/>
-                            </g>
-                            <g id="tank_2_indicator_screws">
-                                <g>
-                                <polygon points="139.56 382.19 140.16 381.33 139.45 383.94 138.88 383.77 139.56 382.19" fill="#595959" fillRule="evenodd"/>
-                                <path d="M142.86,397.86a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58a1.45,1.45,0,0,1-.54-.51Zm1.81-1.93a1.94,1.94,0,0,1,.29.23,1.39,1.39,0,0,1-1,2.38Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                                </g>
-                                <g>
-                                <polygon points="119.77 382.19 120.36 381.33 119.65 383.94 119.09 383.77 119.77 382.19" fill="#595959" fillRule="evenodd"/>
-                                <path d="M123.06,397.86a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58a1.45,1.45,0,0,1-.54-.51Zm1.82-1.93a2.6,2.6,0,0,1,.28.23,1.39,1.39,0,0,1-.26,2.18,1.36,1.36,0,0,1-.73.2Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                                </g>
-                            </g>
-                            <g id="tank_2_indicator_nos">
-                                <text transform="translate(125.36 374.22)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FUEL</text>
-                                <text transform="translate(121.54 378.05)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">QUANTITY</text>
-                                <text transform="translate(120.78 387.99)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">LBS X 1000</text>
-                                <text transform="translate(123.07 397.94)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">0</text>
-                                <text transform="translate(115.42 393.35)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">1</text>
-                                <text transform="translate(112.36 384.17)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">2</text>
-                                <text transform="translate(115.42 374.99)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">3</text>
-                                <text transform="translate(123.07 369.62)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">4</text>
-                                <text transform="translate(132.25 369.62)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">5</text>
-                                <text transform="translate(139.89 374.22)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">6</text>
-                                <text transform="translate(144.48 382.64)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">7</text>
-                                <text transform="translate(141.42 391.82)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">8</text>
-                            </g>
-                            <g id="tank_2_indicator_marks">
-                                <line x1="114.97" y1="372.49" x2="111.74" y2="370.22" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="111.8" y1="382.52" x2="107.86" y2="382.52" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="114.97" y1="392.56" x2="111.74" y2="394.83" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="125.15" y1="364.07" x2="124.55" y2="361.55" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="127.42" y1="363.7" x2="127.16" y2="361.12" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="129.74" y1="363.62" x2="129.77" y2="361.01" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="132.04" y1="363.79" x2="132.38" y2="361.21" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="136.46" y1="365.01" x2="137.45" y2="362.6" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="138.56" y1="366" x2="139.8" y2="363.73" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="140.49" y1="367.25" x2="142.02" y2="365.15" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="142.27" y1="368.72" x2="144.03" y2="366.82" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="145.22" y1="372.23" x2="147.4" y2="370.82" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="146.35" y1="374.25" x2="148.68" y2="373.11" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="147.23" y1="376.37" x2="149.67" y2="375.55" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="147.83" y1="378.61" x2="150.38" y2="378.07" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="148.22" y1="383.2" x2="150.83" y2="383.29" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="148" y1="385.5" x2="150.58" y2="385.9" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="147.49" y1="387.74" x2="150.01" y2="388.45" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="146.72" y1="389.92" x2="149.1" y2="390.94" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="144.4" y1="393.89" x2="146.49" y2="395.45" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="142.89" y1="395.65" x2="144.77" y2="397.46" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="141.19" y1="397.21" x2="142.84" y2="399.22" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="139.32" y1="398.54" x2="140.71" y2="400.75" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="123.31" y1="398.97" x2="121.97" y2="402.68" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="144.45" y1="391.28" x2="147.88" y2="393.24" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="146.75" y1="380.99" x2="150.69" y2="380.65" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="142.72" y1="371.27" x2="145.76" y2="368.72" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="133.82" y1="365.63" x2="134.87" y2="361.8" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="123.34" y1="366.08" x2="121.97" y2="362.37" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="120.73" y1="399.31" x2="119.57" y2="401.63" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="118.74" y1="398.11" x2="117.3" y2="400.27" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="116.93" y1="396.73" x2="115.23" y2="398.68" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="115.29" y1="395.08" x2="113.36" y2="396.84" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="112.65" y1="391.31" x2="110.35" y2="392.53" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="111.71" y1="389.21" x2="109.28" y2="390.15" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="111" y1="387" x2="108.48" y2="387.65" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="110.61" y1="384.74" x2="108.03" y2="385.08" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="110.61" y1="380.14" x2="108.03" y2="379.83" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="111.03" y1="377.88" x2="108.51" y2="377.25" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="111.74" y1="375.69" x2="109.3" y2="374.76" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="112.71" y1="373.59" x2="110.41" y2="372.38" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="115.34" y1="369.82" x2="113.41" y2="368.07" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="116.99" y1="368.21" x2="115.29" y2="366.25" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="118.83" y1="366.82" x2="117.38" y2="364.67" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="120.81" y1="365.66" x2="119.65" y2="363.33" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            </g>
-                            
-                        </g>
-
                         <g id="tank_3_indicator" onDoubleClick={this.setTankQuantity}>
                             <g id="tank_3_indicator_back">
                                 <path d="M604,373.2a24,24,0,1,1-24,24.05,24.07,24.07,0,0,1,24-24.05Zm0,21.93a2.11,2.11,0,1,1,0,4.21,2.11,2.11,0,0,1,0-4.21Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-3)"/>
@@ -3478,156 +1765,6 @@ class App extends React.Component {
                                 <line x1="664.72" y1="367.67" x2="663.11" y2="365.63" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
                             </g>
                             
-                        </g>
-
-                        <g id="left_AUX_indicator" onDoubleClick={this.setTankQuantity}>
-                            <g id="left_AUX_indicator_back">
-                                <path d="M205.73,373.38a24,24,0,1,1-24,24.05,24.06,24.06,0,0,1,24-24.05Zm0,21.93a2.11,2.11,0,1,1,0,4.21,2.11,2.11,0,0,1,0-4.21Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-15)"/>
-                                <path d="M205.73,375a22.43,22.43,0,1,1-22.41,22.44A22.44,22.44,0,0,1,205.73,375Zm0,20.46a2,2,0,1,1,0,3.93,2,2,0,0,1,0-3.93Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-16)"/>
-                            </g>
-                            <g id="left_AUX_indicator_screws">
-                                <g>
-                                <polygon points="211.49 381.37 212.09 381.51 211.38 384.12 210.81 383.95 211.49 381.37" fill="#595959" fillRule="evenodd"/>
-                                <path d="M214.79,398a1.41,1.41,0,0,1,.51-1.87,1.37,1.37,0,0,1,.74-.2l-.71,2.58a1.45,1.45,0,0,1-.54-.51Zm1.81-1.93a1.94,1.94,0,0,1,.29.23,1.39,1.39,0,0,1-1,2.38Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                                </g>
-                                <g>
-                                <polygon points="191.69 381.37 192.29 381.51 191.58 384.12 191.01 383.95 191.69 381.37" fill="#595959" fillRule="evenodd"/>
-                                <path d="M195,398a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58A1.45,1.45,0,0,1,195,398Zm1.81-1.93a1.94,1.94,0,0,1,.29.23,1.39,1.39,0,0,1-.26,2.18,1.36,1.36,0,0,1-.73.2Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                                </g>
-                            </g>
-                            <g id="left_AUX_indicator_nos">
-                                <text transform="translate(197.25 374.22)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FUEL</text>
-                                <text transform="translate(193.42 378.05)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">QUANTITY</text>
-                                <text transform="translate(192.67 387.99)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">LBS X 1000</text>
-                                <text transform="translate(194.96 397.94)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">0</text>
-                                <text transform="translate(186.55 390.28)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">1</text>
-                                <text transform="translate(186.55 377.28)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">2</text>
-                                <text transform="translate(194.96 369.62)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">3</text>
-                                <text transform="translate(207.19 370.39)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">4</text>
-                                <text transform="translate(214.85 379.58)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">5</text>
-                                <text transform="translate(213.31 392.59)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">6</text>
-                            </g>
-                            <g id="left_AUX_indicator_marks">
-                                <line x1="195.25" y1="366.08" x2="193.89" y2="362.37" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="185.16" y1="375.61" x2="181.53" y2="374.02" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="185.16" y1="389.47" x2="181.53" y2="391.03" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="191.99" y1="398.94" x2="190.71" y2="401.2" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="189.44" y1="397.21" x2="187.82" y2="399.25" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="187.2" y1="395.11" x2="185.27" y2="396.84" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="185.36" y1="392.64" x2="183.17" y2="394.06" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="182.95" y1="387.03" x2="180.43" y2="387.65" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="182.44" y1="384" x2="179.86" y2="384.2" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="182.47" y1="380.91" x2="179.86" y2="380.71" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="182.95" y1="377.88" x2="180.43" y2="377.25" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="185.39" y1="372.26" x2="183.2" y2="370.87" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="187.26" y1="369.82" x2="185.33" y2="369.1" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="189.5" y1="367.73" x2="187.88" y2="365.69" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="192.05" y1="366.03" x2="190.77" y2="363.73" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="197.8" y1="363.93" x2="197.32" y2="361.38" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="200.86" y1="363.62" x2="200.81" y2="361.01" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="203.92" y1="363.79" x2="204.29" y2="361.21" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="206.93" y1="364.47" x2="207.69" y2="361.97" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="212.4" y1="367.22" x2="213.93" y2="365.12" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="214.72" y1="369.23" x2="216.57" y2="367.39" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="216.71" y1="371.58" x2="218.81" y2="370.08" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="218.27" y1="374.22" x2="220.59" y2="373.08" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="219.37" y1="377.08" x2="221.87" y2="376.34" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="220.03" y1="380.11" x2="222.6" y2="379.77" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="220.14" y1="383.18" x2="222.75" y2="383.26" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="219.8" y1="386.21" x2="222.35" y2="386.72" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="218.95" y1="389.19" x2="221.39" y2="390.09" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="215.89" y1="394.49" x2="217.9" y2="396.13" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="213.73" y1="396.67" x2="215.46" y2="398.62" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="211.27" y1="398.51" x2="212.66" y2="400.72" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="195.25" y1="398.97" x2="193.89" y2="402.68" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="216.4" y1="391.28" x2="219.83" y2="393.24" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="217.98" y1="377.51" x2="221.78" y2="376.37" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="209.08" y1="366.88" x2="210.87" y2="363.36" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                            </g>	
-                        </g>
-
-                        <g id="left_EXT_indicator" onDoubleClick={this.setTankQuantity}>
-                            <g id="left_EXT_indicator_back">
-                                <path d="M282.15,373.2a24,24,0,1,1-24,24.05,24.06,24.06,0,0,1,24-24.05Zm0,21.93a2.11,2.11,0,1,1,0,4.21,2.11,2.11,0,0,1,0-4.21Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-13)"/>
-                                <path d="M282.15,374.81a22.43,22.43,0,1,1-22.41,22.44,22.45,22.45,0,0,1,22.41-22.44Zm0,20.46a2,2,0,1,1,0,3.93,2,2,0,0,1,0-3.93Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#radial-gradient-14)"/>
-                            </g>
-                            <g id="left_EXT_indicator_screws">
-                                <g>
-                                <polygon points="287.92 382.19 288.51 381.33 287.8 383.94 287.24 383.77 287.92 382.19" fill="#595959" fillRule="evenodd"/>
-                                <path d="M291.21,397.86a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58a1.45,1.45,0,0,1-.54-.51Zm1.81-1.93a1.94,1.94,0,0,1,.29.23,1.39,1.39,0,0,1-.26,2.18,1.36,1.36,0,0,1-.73.2Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                                </g>
-                                <g>
-                                <polygon points="268.12 382.19 268.71 381.33 268 383.94 267.44 383.77 268.12 382.19" fill="#595959" fillRule="evenodd"/>
-                                <path d="M271.41,397.86a1.4,1.4,0,0,1,1.25-2.07l-.71,2.58a1.45,1.45,0,0,1-.54-.51Zm1.82-1.93a1.89,1.89,0,0,1,.28.23,1.39,1.39,0,0,1-.26,2.18,1.36,1.36,0,0,1-.73.2Z" transform="translate(-4.51 -14.6)" fill="#2f2f2f" fillRule="evenodd"/>
-                                </g>
-                            </g>
-                            <g id="left_EXT_indicator_nos">
-                                <text transform="translate(273.73 374.22)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">FUEL</text>
-                                <text transform="translate(269.91 378.05)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">QUANTITY</text>
-                                <text transform="translate(269.14 387.99)" fontSize="3.06" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">LBS X 1000</text>
-                                <text transform="translate(271.43 397.94)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">0</text>
-                                <text transform="translate(263.78 393.35)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">1</text>
-                                <text transform="translate(261.5 385.7)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">2</text>
-                                <text transform="translate(262.25 376.51)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">3</text>
-                                <text transform="translate(269.14 370.39)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">4</text>
-                                <text transform="translate(276.78 368.85)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">5</text>
-                                <text transform="translate(285.2 371.17)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">6</text>
-                                <text transform="translate(290.55 376.51)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">7</text>
-                                <text transform="translate(292.85 385.7)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">8</text>
-                                <text transform="translate(289.02 393.35)" fontSize="3.83" fill="#fefefe" fontFamily="Arial-BoldMT, Arial" fontWeight="700">9</text>
-                            </g>
-                            <g id="left_EXT_indicator_marks">
-                                <line x1="286.89" y1="367.67" x2="288.99" y2="364.33" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="293.36" y1="374.84" x2="296.93" y2="373.11" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="295.03" y1="384.34" x2="298.97" y2="384.76" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="291.43" y1="393.3" x2="294.55" y2="395.73" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="258.8" y1="382.33" x2="256.2" y2="382.3" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="258.92" y1="380.2" x2="256.34" y2="379.89" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="259.31" y1="378.13" x2="256.76" y2="377.54" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="259.91" y1="376.12" x2="257.44" y2="375.24" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="261.75" y1="372.32" x2="259.57" y2="370.93" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="263" y1="370.62" x2="260.96" y2="369" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="264.39" y1="369.06" x2="262.57" y2="367.22" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="265.97" y1="367.67" x2="264.36" y2="365.63" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="269.55" y1="365.43" x2="268.44" y2="363.08" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="271.5" y1="364.64" x2="270.65" y2="362.17" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="273.54" y1="364.07" x2="272.95" y2="361.52" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="275.61" y1="363.7" x2="275.33" y2="361.12" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="279.84" y1="363.73" x2="280.12" y2="361.15" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="281.91" y1="364.07" x2="282.47" y2="361.55" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="283.92" y1="364.67" x2="284.8" y2="362.2" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="285.87" y1="365.49" x2="287.01" y2="363.14" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="289.45" y1="367.73" x2="291.06" y2="365.69" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="291" y1="369.12" x2="292.85" y2="367.27" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="292.42" y1="370.7" x2="294.46" y2="369.06" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="293.64" y1="372.4" x2="295.85" y2="371.02" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="295.48" y1="376.2" x2="297.95" y2="375.32" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="296.08" y1="378.22" x2="298.6" y2="377.62" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="296.45" y1="380.28" x2="299.03" y2="380" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="296.56" y1="382.41" x2="299.17" y2="382.38" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="296.11" y1="386.58" x2="298.66" y2="387.14" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="295.54" y1="388.62" x2="298.01" y2="389.47" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="294.75" y1="390.57" x2="297.1" y2="391.68" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="293.75" y1="392.42" x2="295.97" y2="393.78" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="291.15" y1="395.73" x2="292.99" y2="397.55" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="289.59" y1="397.15" x2="291.23" y2="399.16" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="287.89" y1="398.4" x2="289.28" y2="400.58" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="286.04" y1="399.42" x2="287.21" y2="401.77" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="271.64" y1="398.97" x2="270.28" y2="402.68" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="263.85" y1="393.3" x2="260.73" y2="395.73" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="260.22" y1="384.37" x2="256.28" y2="384.76" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="261.89" y1="374.84" x2="258.35" y2="373.11" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="268.36" y1="367.67" x2="266.26" y2="364.33" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="277.63" y1="365.03" x2="277.63" y2="361.07" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="1.5"/>
-                                <line x1="269.23" y1="399.39" x2="268.07" y2="401.71" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="267.42" y1="398.34" x2="266" y2="400.52" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="265.72" y1="397.09" x2="264.05" y2="399.11" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="264.16" y1="395.68" x2="262.29" y2="397.49" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="261.58" y1="392.36" x2="259.34" y2="393.72" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="260.56" y1="390.49" x2="258.21" y2="391.59" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="259.8" y1="388.53" x2="257.33" y2="389.38" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                                <line x1="259.23" y1="386.49" x2="256.68" y2="387.06" fill="none" stroke="#fefefe" strokeMiterlimit="10" strokeWidth="0.77"/>
-                            </g>
                         </g>
 
                         <g id="right_AUX_indicator" onDoubleClick={this.setTankQuantity}>
@@ -3851,33 +1988,15 @@ class App extends React.Component {
                         </g>
                     </g>
 
-                    <g id="eng_1_low_press">
-                        <path d="M27.18,483.77v16.92h17V483.77Zm18.13-1.19v19.29H26V482.58Z" transform="translate(-4.51 -14.6)" fill="#616161"/>
-                        <rect x="23.67" y="470.14" width="15" height="15" fill="#272727" stroke="#000" strokeMiterlimit="10"/>
-                        <text id="eng1_low_press_light" visibility={this.state.pressureSwitches[0].fuelPresent ? "hidden" : "visible"} transform="translate(26.88 476.78)" fontSize="3.5" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700"><tspan letterSpacing="0.1em">LOW</tspan><tspan x="-1.16" y="4.59">PRESS</tspan></text>
-                    </g>
-                    <g id="eng_2_low_press">
-                        <path d="M104.18,483.77v16.92h17V483.77Zm18.13-1.19v19.29H103V482.58Z" transform="translate(-4.51 -14.6)" fill="#616161"/>
-                        <rect x="100.67" y="470.14" width="15" height="15" fill="#272727" stroke="#000" strokeMiterlimit="10"/>
-                        <text id="eng2_low_press_light" visibility={this.state.pressureSwitches[1].fuelPresent ? "hidden" : "visible"} transform="translate(104.13 476.78)" fontSize="3.5" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700"><tspan letterSpacing="0.1em">LOW</tspan><tspan x="-1.16" y="4.59">PRESS</tspan></text>
-                    </g>
                     <g id="eng_3_low_press">
                         <path d="M616.76,483.78V500.7h17V483.78Zm18.13-1.18v19.29H615.61V482.6Z" transform="translate(-4.51 -14.6)" fill="#616161"/>
                         <rect x="613.25" y="470.16" width="15" height="15" fill="#272727" stroke="#000" strokeMiterlimit="10"/>
-                        <text id="eng3_low_press_light" visibility={this.state.pressureSwitches[2].fuelPresent ? "hidden" : "visible"} transform="translate(616.6 476.79)" fontSize="3.5" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700"><tspan letterSpacing="0.1em">LOW</tspan><tspan x="-1.16" y="4.59">PRESS</tspan></text>
+                        <text id="eng3_low_press_light" visibility={this.state.pressureSwitches[0].fuelPresent ? "hidden" : "visible"} transform="translate(616.6 476.79)" fontSize="3.5" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700"><tspan letterSpacing="0.1em">LOW</tspan><tspan x="-1.16" y="4.59">PRESS</tspan></text>
                     </g>
                     <g id="eng_4_low_press">
                         <path d="M693.56,483.78V500.7h17V483.78Zm18.13-1.18v19.29H692.41V482.6Z" transform="translate(-4.51 -14.6)" fill="#616161"/>
                         <rect x="690.05" y="470.16" width="15" height="15" fill="#272727" stroke="#000" strokeMiterlimit="10"/>
-                        <text id="eng4_low_press_light" visibility={this.state.pressureSwitches[3].fuelPresent ? "hidden" : "visible"} transform="translate(693.05 476.15)" fontSize="3.5" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700"><tspan letterSpacing="0.1em">LOW</tspan><tspan x="-1.16" y="4.59">PRESS</tspan></text>
-                    </g>
-                    <g id="left_aux_empty">
-                        <path d="M235.48,411.7v16.92h17V411.7Zm18.13-1.18v19.29H234.33V410.52Z" transform="translate(-4.51 -14.6)" fill="#616161"/>
-                        <rect x="231.97" y="398.08" width="15" height="15" fill="#272727" stroke="#000" strokeMiterlimit="10"/>
-                    </g>
-                    <g id="left_ext_empty">
-                        <path d="M316.86,412v16.92h17V412ZM335,410.84v19.29H315.71V410.84Z" transform="translate(-4.51 -14.6)" fill="#616161"/>
-                        <rect x="313.36" y="398.4" width="15" height="15" fill="#272727" stroke="#000" strokeMiterlimit="10"/>
+                        <text id="eng4_low_press_light" visibility={this.state.pressureSwitches[1].fuelPresent ? "hidden" : "visible"} transform="translate(693.05 476.15)" fontSize="3.5" fill="#f7d417" fontFamily="ArialNarrow-Bold, Arial" fontWeight="700"><tspan letterSpacing="0.1em">LOW</tspan><tspan x="-1.16" y="4.59">PRESS</tspan></text>
                     </g>
                     <g id="right_aux_empty">
                         <path d="M485.47,412v16.92h17V412Zm18.13-1.18v19.29H484.31V410.84Z" transform="translate(-4.51 -14.6)" fill="#616161"/>
@@ -3888,24 +2007,6 @@ class App extends React.Component {
                         <rect x="400.29" y="398.4" width="15" height="15" fill="#272727" stroke="#000" strokeMiterlimit="10"/>
                     </g>
                     
-                    <g id="left_dump_switch_open" className="guarded_switch" onClick={this.handleGuardVisibility}>
-                        <path d="M30.51,330.41H40.83a2.24,2.24,0,0,1,2.24,2.24V350l-.9,13.75A2.3,2.3,0,0,1,39.93,366H31.4a2.32,2.32,0,0,1-2.24-2.24l-.89-13.81V332.65a2.24,2.24,0,0,1,2.24-2.24Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-3)"/>
-                        <path d="M42.76,341a3.49,3.49,0,0,1,.35,1.61V359.5h-2V340.32a3.71,3.71,0,0,1,1,0,1.22,1.22,0,0,1,.68.64Z" transform="translate(-4.51 -14.6)" fill="#8c3b35" fillRule="evenodd"/>
-                        <path d="M28.58,341a3.62,3.62,0,0,0-.34,1.61V359.5h2V340.32a3.71,3.71,0,0,0-1,0,1.21,1.21,0,0,0-.69.64Z" transform="translate(-4.51 -14.6)" fill="#8c3b35" fillRule="evenodd"/>
-                        <path d="M42.15,358.19a4.1,4.1,0,0,1,.91,3.06l-1.17,4.15c-.17.57-.48,1.32-1.17,1.32H30.87c-.69,0-1-.77-1.17-1.32l-1.4-4.15c-.4-1.16.69-3.3,1.81-3.85a1.08,1.08,0,0,1,.53-.15H40.72a2.07,2.07,0,0,1,1.43.94Z" transform="translate(-4.51 -14.6)" fill="#963d37" fillRule="evenodd"/>
-                        <path d="M42.38,357.89a2.18,2.18,0,0,1,.72,1.61v.83a2.19,2.19,0,0,1-.72,1.6,2.34,2.34,0,0,1-1.63.64H30.59a2.36,2.36,0,0,1-1.95-1,2.14,2.14,0,0,1-.4-1.28v-.79a2.23,2.23,0,0,1,.71-1.61,2.38,2.38,0,0,1,1.64-.64H40.75a2.36,2.36,0,0,1,1.63.64Z" transform="translate(-4.51 -14.6)" fill="#ba524a" fillRule="evenodd"/>
-                        <g>
-                            <polygon points="36.64 348.26 25.97 348.26 27.53 351.76 34.78 351.76 36.64 348.26" fill="#ff0" fillRule="evenodd"/>
-                            <polygon points="36.31 348.84 26.41 349.15 26.27 348.84 36.51 348.46 36.31 348.84"/>
-                            <polygon points="36.04 349.34 26.69 349.74 26.55 349.42 36.24 348.94 36.04 349.34"/>
-                            <polygon points="35.76 349.9 26.93 350.25 26.79 349.93 35.98 349.46 35.76 349.9"/>
-                            <polygon points="35.49 350.37 27.11 350.65 26.99 350.38 35.69 350.02 35.49 350.37"/>
-                            <polygon points="35.3 350.71 27.26 351.03 27.15 350.78 35.44 350.46 35.3 350.71"/>
-                            <polygon points="35.13 351.02 27.41 351.37 27.33 351.19 35.25 350.78 35.13 351.02"/>
-                            <polygon points="34.94 351.39 27.52 351.69 27.45 351.5 35.09 351.13 34.94 351.39"/>
-                        </g>
-                    </g>
-
                     <g id="right_dump_switch_open" className="guarded_switch" onClick={this.handleGuardVisibility}>
                         <path d="M697,330.41h10.32a2.25,2.25,0,0,1,2.24,2.24V350l-.9,13.75a2.3,2.3,0,0,1-2.24,2.24H697.9a2.31,2.31,0,0,1-2.24-2.24l-.89-13.81V332.65a2.24,2.24,0,0,1,2.24-2.24Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient)"/>
                         <path d="M709.26,341a3.62,3.62,0,0,1,.34,1.61V359.5h-2V340.32a3.71,3.71,0,0,1,1,0,1.24,1.24,0,0,1,.69.64Z" transform="translate(-4.51 -14.6)" fill="#8c3b35" fillRule="evenodd"/>
@@ -3984,32 +2085,6 @@ class App extends React.Component {
                         />
                     )}						
                     
-                    <g id="left_dump_switch_guarded" className="guarded_switch" visibility={this.state.leftGuardVisible ? "visible" : "hidden"} onClick={this.handleGuardVisibility}>
-                        <path d="M43,360.29h0a.46.46,0,0,0,.12-.23s0-.38,0-.53v-7.3a.43.43,0,0,0-.14-.31.41.41,0,0,0-.32-.13.46.46,0,0,0-.32.12.1.1,0,0,1,0,.05.52.52,0,0,0-.1.27V360a.45.45,0,0,0,.14.32.48.48,0,0,0,.32.13.44.44,0,0,0,.32-.13Z" transform="translate(-4.51 -14.6)" fill="#4d4d4d" fillRule="evenodd"/>
-                        <path d="M43,360.29h0a.46.46,0,0,0,.12-.23s0-.38,0-.53v-7.3a.43.43,0,0,0-.14-.31.41.41,0,0,0-.32-.13.46.46,0,0,0-.32.12.1.1,0,0,1,0,.05.52.52,0,0,0-.1.27V360a.45.45,0,0,0,.14.32.48.48,0,0,0,.32.13.44.44,0,0,0,.32-.13Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#333" strokeMiterlimit="10" strokeWidth="0.23"/>
-                        <path d="M29,360.29s0,0,0,0a.38.38,0,0,0,.11-.23s0-.38,0-.53v-7.3a.46.46,0,0,0-.12-.31.47.47,0,0,0-.34-.13.44.44,0,0,0-.31.12l0,.05a.44.44,0,0,0-.09.27V360a.44.44,0,0,0,.12.32.5.5,0,0,0,.32.13.46.46,0,0,0,.33-.13Z" transform="translate(-4.51 -14.6)" fill="#4d4d4d" fillRule="evenodd"/>
-                        <path d="M29,360.29s0,0,0,0a.38.38,0,0,0,.11-.23s0-.38,0-.53v-7.3a.46.46,0,0,0-.12-.31.47.47,0,0,0-.34-.13.44.44,0,0,0-.31.12l0,.05a.44.44,0,0,0-.09.27V360a.44.44,0,0,0,.12.32.5.5,0,0,0,.32.13.46.46,0,0,0,.33-.13Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#333" strokeMiterlimit="10" strokeWidth="0.23"/>
-                        <path d="M30.43,330.22H40.91a2.28,2.28,0,0,1,2.27,2.28v17.56l-2.2.05v1.5h1.29V364A2.28,2.28,0,0,1,40,366.31H31.33A2.28,2.28,0,0,1,29.06,364V351.6l1.3,0v-1.47L28.15,350V332.5a2.28,2.28,0,0,1,2.28-2.28Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-4)"/>
-                        <path d="M41.56,363.85h0a2.17,2.17,0,0,0,.39-1.23V344c.17-1.3,1-2.5,1-3.83V329.39a2.28,2.28,0,0,0-2.27-2.28H30.81a2.27,2.27,0,0,0-2.27,2.2v10.84c-.05,1.33.79,2.53,1,3.83v18.64a2.18,2.18,0,0,0,2.19,2.17,3.79,3.79,0,0,1,4-3.52,3.8,3.8,0,0,1,4,3.52,2.16,2.16,0,0,0,1.8-.94Z" transform="translate(-4.51 -14.6)" fill="#963d37" fillRule="evenodd"/>
-                        <rect x="27.5" y="315.09" width="7.36" height="22.23" fill="#ff0"/>
-                        <path d="M40.47,352.78V328.42s1.59-.6,1.59.47.54,11.39.06,12a6.16,6.16,0,0,0-.66,3c0,.89-.31,8.9-.31,8.9Z" transform="translate(-4.51 -14.6)" fill="#a14a49" fillRule="evenodd"/>
-                        <path d="M39.4,363.1a4.09,4.09,0,0,0-3.68-1.83c-1.9,0-2.76,1-3.67,1.83V352H39.4Z" transform="translate(-4.51 -14.6)" fill="#e3e300" fillRule="evenodd"/>
-                        <path d="M31.17,352.78V328.42s-1.59-.6-1.59.47-.54,11.39-.07,12a6,6,0,0,1,.67,3c0,.89.32,8.9.32,8.9Z" transform="translate(-4.51 -14.6)" fill="#a14a49" fillRule="evenodd"/>
-                        <path d="M35.66,331.61a.68.68,0,1,0,.69.68.68.68,0,0,0-.69-.68Z" transform="translate(-4.51 -14.6)" fill="#1a1a1a" fillRule="evenodd"/>
-                        <path d="M39.4,332.43" transform="translate(-4.51 -14.6)"/>
-                        <g>
-                            <polygon points="33.07 315.09 27.5 318.65 27.5 317.2 30.88 315.09 33.07 315.09"/>
-                            <polygon points="34.86 322.23 27.5 326.93 27.5 325.49 34.89 320.87 34.86 322.23"/>
-                            <polygon points="34.86 325.7 27.5 330.4 27.5 328.95 34.89 324.34 34.86 325.7"/>
-                            <polygon points="34.86 329.26 27.5 333.96 27.5 332.51 34.89 327.9 34.86 329.26"/>
-                            <polygon points="34.86 343.21 27.5 347.91 27.5 346.47 34.89 341.85 34.86 343.21"/>
-                            <polygon points="34.86 339.55 27.5 344.25 27.5 342.81 34.89 338.19 34.86 339.55"/>
-                            <polygon points="34.86 335.95 27.5 340.65 27.5 339.21 34.89 334.59 34.86 335.95"/>
-                            <polygon points="34.86 332.62 27.5 337.32 27.5 335.88 34.89 331.26 34.86 332.62"/>
-                            <polygon points="34.86 318.64 27.5 323.34 27.5 321.9 34.89 317.28 34.86 318.64"/>
-                        </g>
-                    </g>
-
                     <g id="right_dump_switch_guarded" className="guarded_switch" visibility={this.state.rightGuardVisible ? "visible" : "hidden"} onClick={this.handleGuardVisibility}>
                         <path d="M709.5,360.29h0a.38.38,0,0,0,.11-.23s0-.38,0-.53v-7.3a.44.44,0,0,0-.45-.44.48.48,0,0,0-.33.12s0,0,0,.05a.45.45,0,0,0-.1.27V360a.44.44,0,0,0,.13.32.51.51,0,0,0,.33.13.45.45,0,0,0,.32-.13Z" transform="translate(-4.51 -14.6)" fill="#4d4d4d" fillRule="evenodd"/>
                         <path d="M709.5,360.29h0a.38.38,0,0,0,.11-.23s0-.38,0-.53v-7.3a.44.44,0,0,0-.45-.44.48.48,0,0,0-.33.12s0,0,0,.05a.45.45,0,0,0-.1.27V360a.44.44,0,0,0,.13.32.51.51,0,0,0,.33.13.45.45,0,0,0,.32-.13Z" transform="translate(-4.51 -14.6)" fill="none" stroke="#333" strokeMiterlimit="10" strokeWidth="0.23"/>
@@ -4051,12 +2126,8 @@ class App extends React.Component {
                     */}
                     <g id="tanks_backgrounds">
                         <path d="M656.08,284.74s2.14-14.44-93.2-20.38c-54.1-3.09-63.63-1-63.63-1s-23.36,3.35-22.89,23.22,24.32,20.89,24.32,20.89c16,1.51,52.78-.23,67.21-.77C600.2,305.34,652.72,295.6,656.08,284.74Z" transform="translate(-4.51 -14.6)" stroke="#737373" strokeLinejoin="round" strokeWidth="2" fillRule="evenodd" fill="url(#linear-gradient-5)"/>
-                        <polygon points="27.86 173.41 27.86 131.88 168.91 131.88 168.91 182.95 27.86 173.41" stroke="#737373" strokeLinejoin="round" strokeWidth="2" fillRule="evenodd" fill="url(#linear-gradient-6)"/>
-                        <polygon points="196.69 184.5 196.69 131.62 261.18 131.62 261.18 194.3 196.69 184.5" stroke="#737373" strokeLinejoin="round" strokeWidth="2" fillRule="evenodd" fill="url(#linear-gradient-7)"/>
-                        <polygon points="308.1 196.37 291.68 196.37 291.68 132.65 340.47 132.65 340.47 177.02 308.1 196.37" stroke="#737373" strokeLinejoin="round" strokeWidth="2" fillRule="evenodd" fill="url(#linear-gradient-8)"/>
                         <polygon points="418.38 196.62 435.05 196.62 435.05 132.39 385.53 132.39 385.53 177.28 418.38 196.62" stroke="#737373" strokeLinejoin="round" strokeWidth="2" fillRule="evenodd" fill="url(#linear-gradient-9)"/>
                         <polygon points="698.59 173.92 698.59 131.62 557.05 131.62 557.05 183.47 698.59 173.92" stroke="#737373" strokeLinejoin="round" strokeWidth="2" fillRule="evenodd" fill="url(#linear-gradient-10)"/>
-                        <path d="M77.54,284.74S75.36,270.3,172,264.36c54.82-3.09,64.48-1,64.48-1s23.67,3.35,23.19,23.22S235,307.44,235,307.44c-16.24,1.51-53.48-.23-68.11-.77C134.16,305.34,80.94,295.6,77.54,284.74Z" transform="translate(-4.51 -14.6)" stroke="#737373" strokeLinejoin="round" strokeWidth="2" fillRule="evenodd" fill="url(#linear-gradient-11)"/>
                         <path d="M469.82,208.39V146.74h65v52.62S469.58,207.87,469.82,208.39Z" transform="translate(-4.51 -14.6)" stroke="#737373" strokeLinejoin="round" strokeWidth="2" fillRule="evenodd" fill="url(#linear-gradient-12)"/>
                     </g>
                     
@@ -4066,24 +2137,6 @@ class App extends React.Component {
                     
                     */}
                     <g id="engines">
-                        <g id="engine_1">
-                                <path d="M72.33,14.91C58.12,22.16,45.92,29.41,38.1,36.65A44.44,44.44,0,0,0,28.93,47.4q-2,4.22,2.73,4.8a24.09,24.09,0,0,0,7.93,0q1.33,4.13,5,4.63c3,.73,6.59,0,10.67-1.66,7.92-2.65,16.46-7.56,25-12.65,1.46-1.15,6.19-8.24,3.8-17S77.59,13.92,72.33,14.91Z" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25" fillRule="evenodd"/>
-                                <path d="M79.62,42.88a3.61,3.61,0,0,1-4.05-1.18" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                                <path d="M72.33,15c-3.12,1.22-3.2,7.26-2.43,14.82" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                                <path d="M44.53,35.79c-.49-4.86,1.41-6.33,4.4-6.25,5.44,1.33,9,5.06,9.9,12.44a28.47,28.47,0,0,1-1.23,9.49c-2.1,5.91-7,4.86-10.39-1" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                                <path d="M38.25,36.78c-2.07,1.69-1.85,6.23.48,10.12s5.89,5.67,8,4,1.85-6.23-.47-10.13-5.9-5.67-8-4Z" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                                <path d="M39.51,52.22l5-.61Z" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25" fillRule="evenodd"/>
-                                <path d="M44.81,57c1.74-.39,2-2.25.82-5.57" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                            </g>
-                        <g id="engine_2">
-                                <path d="M184.57,14.91c-14.2,7.25-26.41,14.5-34.22,21.74a44.28,44.28,0,0,0-9.18,10.75c-1.29,2.81-.39,4.41,2.73,4.8a24.15,24.15,0,0,0,7.94,0q1.32,4.13,5,4.63c3,.73,6.59,0,10.66-1.66,7.92-2.65,16.46-7.56,25-12.65,1.46-1.15,6.19-8.24,3.8-17s-6.48-11.65-11.74-10.66Z" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25" fillRule="evenodd"/>
-                                <path d="M191.86,42.88a3.61,3.61,0,0,1-4.05-1.18" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                                <path d="M184.57,15c-3.12,1.22-3.2,7.26-2.43,14.82" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                                <path d="M156.77,35.79c-.49-4.86,1.41-6.33,4.4-6.25,5.44,1.33,9.06,5.06,9.9,12.44a28.47,28.47,0,0,1-1.23,9.49c-2.1,5.91-7,4.86-10.38-1" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                                <path d="M150.49,36.78c-2.07,1.69-1.85,6.23.48,10.12s5.89,5.67,8,4,1.86-6.23-.47-10.13-5.9-5.67-8-4Z" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                                <path d="M151.76,52.22l5-.61Z" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25" fillRule="evenodd"/>
-                                <path d="M157.05,57c1.74-.39,2-2.25.82-5.57" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
-                            </g>
                         <g id="engine_3">
                                 <path d="M539.24,14.91c14.21,7.25,26.42,14.5,34.23,21.74a44.51,44.51,0,0,1,9.18,10.75q1.94,4.22-2.73,4.8a24.15,24.15,0,0,1-7.94,0q-1.32,4.13-5,4.63c-3,.73-6.59,0-10.66-1.66-7.92-2.65-16.47-7.56-25.05-12.65-1.46-1.15-6.2-8.24-3.81-17S534,13.92,539.24,14.91Z" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25" fillRule="evenodd"/>
                                 <path d="M532,42.88a3.61,3.61,0,0,0,4-1.18" transform="translate(-4.51 -14.6)" fill="#e6e6e6" stroke="#bfbfbf" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.25"/>
@@ -4109,26 +2162,16 @@ class App extends React.Component {
                     
                     */}
                     <g id="labels-system">
-                        <text transform="translate(36.51 51.43) scale(0.94 1)" fontSize="8" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Engine 1</text>
-                        <text transform="translate(148.75 51.43) scale(0.94 1)" fontSize="8" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Engine 2</text>
+                        
                         <text transform="translate(528.48 51.43) scale(0.94 1)" fontSize="8" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Engine 3</text>
                         <text transform="translate(644.39 51.43) scale(0.94 1)" fontSize="8" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Engine 4</text>
-                        <text transform="translate(26.86 128.11) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">No.1 Tank</text>
-                        <text transform="translate(241.99 120.72) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">No.2 <tspan x="0" y="7.79">Tank</tspan></text>
-                        <text transform="translate(328.2 118.14) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans"><tspan >Left</tspan><tspan x="0.01" y="6">Aux</tspan><tspan x="0.26" y="12">Tank</tspan></text>
-                        <text transform="translate(122.3 206.75) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Refuel Manifold</text>
-                        <text transform="translate(258 98.11) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Crossfeed Manifold</text>
                         <text transform="translate(379.54 98.11) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Crossfeed Manifold</text>
                         <text transform="translate(411.94 65.85) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Pressure Xmtr</text>
                         <text transform="translate(552.63 206.75) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Refuel Manifold</text>
-                        <text transform="translate(335.06 279.66) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">SPR Connection</text>
-                        <text transform="translate(63.98 256) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Left Ext Tank</text>
                         <text transform="translate(626.82 256) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">Right Ext Tank</text>
                         <text transform="translate(385.53 116.71) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans"><tspan xmlSpace="preserve">Right</tspan><tspan x="0" y="6" xmlSpace="preserve">Aux</tspan><tspan x="0" y="12">Tank</tspan></text>
                         <text transform="translate(504.81 129.83) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">No.3 Tank</text>
                         <text transform="translate(672.21 129.83) scale(0.94 1)" fontSize="6" fill="#545454" fontFamily="OpenSans-Regular, Open Sans">No.4 Tank</text>
-                        <rect x="321.51" y="51.71" width="46.98" height="17.74" rx="8.87" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                        <text transform="translate(337.47 63.81) scale(0.94 1)" fontSize="8" fill="#c5c5c5" fontFamily="OpenSans-Regular, Open Sans">APU</text>
                     </g>
 
                     {/*
@@ -4138,90 +2181,6 @@ class App extends React.Component {
                     */}
 
                     <g id="heaters">
-                        <g>
-                        <rect x="108.86" y="39.67" width="2.63" height="19.55" rx="1" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        <path d="M117,55h3.38c.83,0,3.85,1.32,3.85,2.38V71c0,.84-2.57,1.83-3.79,1.83H117c-1.08,0-3.79-.85-3.79-1.83V57.32C113.16,56.45,115.92,55,117,55Z" transform="translate(-4.51 -14.6)" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        <g>
-                            <rect x="110.35" y="44.94" width="3.86" height="10.41" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="45.34" x2="112.56" y2="45.34" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="54.98" x2="112.56" y2="54.98" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="54.13" x2="112.56" y2="54.13" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="53.36" x2="112.56" y2="53.36" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="52.56" x2="112.56" y2="52.56" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="51.81" x2="112.56" y2="51.81" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="50.87" x2="112.56" y2="50.87" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="50.11" x2="112.56" y2="50.11" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="49.31" x2="112.56" y2="49.31" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="48.54" x2="112.56" y2="48.54" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="47.72" x2="112.56" y2="47.72" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="46.96" x2="112.56" y2="46.96" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="114.21" y1="46.05" x2="112.56" y2="46.05" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        </g>
-                        <g>
-                            <line x1="117.77" y1="45.34" x2="116.12" y2="45.34" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="54.98" x2="116.12" y2="54.98" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="54.13" x2="116.12" y2="54.13" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="53.36" x2="116.12" y2="53.36" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="52.56" x2="116.12" y2="52.56" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="51.81" x2="116.12" y2="51.81" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="50.87" x2="116.12" y2="50.87" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="50.11" x2="116.12" y2="50.11" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="49.31" x2="116.12" y2="49.31" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="48.54" x2="116.12" y2="48.54" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="47.72" x2="116.12" y2="47.72" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="46.96" x2="116.12" y2="46.96" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="117.77" y1="46.05" x2="116.12" y2="46.05" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        </g>
-                        <g>
-                            <polygon points="113.43 43.23 112.8 43.66 112.17 44.09 112.17 43.23 112.17 42.38 112.8 42.8 113.43 43.23" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25" fillRule="evenodd"/>
-                            <polygon points="110.34 43.23 110.98 43.66 111.6 44.09 111.6 43.23 111.6 42.38 110.98 42.8 110.34 43.23" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25" fillRule="evenodd"/>
-                            <line x1="113.38" y1="43.26" x2="117.42" y2="43.26" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <path d="M121.33,58.46a.6.6,0,0,0,.6-.59.61.61,0,0,0-.6-.62.61.61,0,1,0,0,1.21Z" transform="translate(-4.51 -14.6)" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25" fillRule="evenodd"/>
-                        </g>
-                        <line x1="114.96" y1="40.63" x2="114.96" y2="57.96" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        </g>
-                        <g>
-                        <rect x="224.28" y="39.67" width="2.63" height="19.55" rx="1" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        <path d="M232.37,55h3.37c.84,0,3.86,1.32,3.86,2.38V71c0,.84-2.58,1.83-3.8,1.83h-3.43c-1.09,0-3.8-.85-3.8-1.83V57.32C228.57,56.45,231.34,55,232.37,55Z" transform="translate(-4.51 -14.6)" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        <g>
-                            <rect x="225.76" y="44.94" width="3.86" height="10.41" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="45.34" x2="227.97" y2="45.34" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="54.98" x2="227.97" y2="54.98" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="54.13" x2="227.97" y2="54.13" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="53.36" x2="227.97" y2="53.36" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="52.56" x2="227.97" y2="52.56" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="51.81" x2="227.97" y2="51.81" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="50.87" x2="227.97" y2="50.87" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="50.11" x2="227.97" y2="50.11" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="49.31" x2="227.97" y2="49.31" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="48.54" x2="227.97" y2="48.54" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="47.72" x2="227.97" y2="47.72" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="46.96" x2="227.97" y2="46.96" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="229.62" y1="46.05" x2="227.97" y2="46.05" fill="#e4e4e4" stroke="#4d4d4d" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        </g>
-                        <g>
-                            <line x1="233.19" y1="45.34" x2="231.54" y2="45.34" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="54.98" x2="231.54" y2="54.98" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="54.13" x2="231.54" y2="54.13" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="53.36" x2="231.54" y2="53.36" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="52.56" x2="231.54" y2="52.56" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="51.81" x2="231.54" y2="51.81" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="50.87" x2="231.54" y2="50.87" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="50.11" x2="231.54" y2="50.11" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="49.31" x2="231.54" y2="49.31" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="48.54" x2="231.54" y2="48.54" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="47.72" x2="231.54" y2="47.72" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="46.96" x2="231.54" y2="46.96" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <line x1="233.19" y1="46.05" x2="231.54" y2="46.05" fill="#e4e4e4" stroke="#221f20" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        </g>
-                        <g>
-                            <polygon points="228.85 43.23 228.22 43.66 227.59 44.09 227.59 43.23 227.59 42.38 228.22 42.8 228.85 43.23" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25" fillRule="evenodd"/>
-                            <polygon points="225.76 43.23 226.39 43.66 227.01 44.09 227.01 43.23 227.01 42.38 226.39 42.8 225.76 43.23" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25" fillRule="evenodd"/>
-                            <line x1="228.8" y1="43.26" x2="232.83" y2="43.26" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
-                            <path d="M236.75,58.46a.6.6,0,0,0,.6-.59.61.61,0,0,0-.6-.62.61.61,0,1,0,0,1.21Z" transform="translate(-4.51 -14.6)" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25" fillRule="evenodd"/>
-                        </g>
-                        <line x1="230.38" y1="40.63" x2="230.38" y2="57.96" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
-                        </g>
                         <g>
                         <rect x="482.65" y="39.67" width="2.63" height="19.55" rx="1" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
                         <path d="M490.74,55h3.38c.84,0,3.85,1.32,3.85,2.38V71c0,.84-2.57,1.83-3.79,1.83h-3.44C489.66,72.83,487,72,487,71V57.32C487,56.45,489.72,55,490.74,55Z" transform="translate(-4.51 -14.6)" fill="#e4e4e4" stroke="#999" strokeMiterlimit="10" strokeWidth="0.25"/>
@@ -4314,12 +2273,8 @@ class App extends React.Component {
                     
                     */}
                     <g id="fuelInTanks">
-                        <path id="fuel_tank_1" d="M34.37,186V151.48a10.31,10.31,0,0,0,10.5,1.35c5.71-2.32,10.78,5.08,15.58,2.65,12-6.09,16.34-3.41,20-2.3,3.31,1,5.77,6.92,11.35,4.38,9.58-4.34,11.62-6,18-3.32,4.4,1.86,8.15,5.11,16.16,1.86,3.63-1.47,5.41-4,11.1-5.49,2.35-.61,10.32.33,13,2.61,5.31,4.6,21.35-.74,21.35-.74v43.07Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-20)"/>
-                        <path id="fuel_tank_2" d="M532.52,197V151.48s-6.47-2.17-9.68-2c-8.45.55-7.17,3.51-10.64,4-8.17,1.22-7.79-2.3-14.17.32-5.83,2.39-6.46,3.19-9.19,2.3-2-.67-5.43-2.38-9.72-1.2a6,6,0,0,1-7.07-2.48v54.07Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-18)"/>
-                        <path id="fuel_tank_3" d="M202.77,197V151.48s6.47-2.17,9.67-2c8.46.55,7.18,3.51,10.65,4,8.17,1.22,7.79-2.3,14.17.32,5.83,2.39,6.45,3.19,9.19,2.3,2.05-.67,5.43-2.38,9.71-1.2a6,6,0,0,0,7.08-2.48v54.07Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-15)"/>
+                        <path id="fuel_tank_3" d="M532.52,197V151.48s-6.47-2.17-9.68-2c-8.45.55-7.17,3.51-10.64,4-8.17,1.22-7.79-2.3-14.17.32-5.83,2.39-6.46,3.19-9.19,2.3-2-.67-5.43-2.38-9.72-1.2a6,6,0,0,1-7.07-2.48v54.07Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-18)"/>
                         <path id="fuel_tank_4" d="M701.86,187V151.48s-5.34,3.87-11.5,1.35c-5.71-2.32-10.77,5.08-15.58,2.65-12-6.09-16.34-3.41-20-2.3-3.31,1-5.77,6.92-11.35,4.38-9.58-4.34-11.62-6-18-3.32-4.39,1.86-8.14,5.11-16.16,1.86-3.63-1.47-5.41-4-11.1-5.49-2.34-.61-10.32.33-13,2.61-5.31,4.6-22.35-.74-22.35-.74v44.07Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-13)"/>
-                        <path id="fuel_left_AUX" d="M298.18,209V151.48a19.43,19.43,0,0,1,6.92-1.24c8.46.55,4.91,3,8.4,3.3,6.1.58,4.09-1.53,10.08-1.53,6.3,0,6.8.7,9.28,2.15,3.8,2.22,4.82-1.77,9.79-2.68v39.07L312,208.9Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-17)"/>
-                        <path id="fuel_left_EXT" d="M80.11,283.23c3.67-5,20.31-7.22,31.53-7.15,22.6.13,21.07-2.86,40.79-5.39,14.26-.81,22.7,4.11,31.48,4.59,16.73.93,20.2-6.81,42.24-2.82,15.69,2.84,32-5.78,31.5,14.09S235,305.44,235,305.44c-16.24,1.51-53.48-.23-68.11-.77C134.16,303.34,73.94,291.72,80.11,283.23Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-19)"/>
                         <path id="fuel_right_AUX" d="M436.87,209V151.48a19.37,19.37,0,0,0-6.92-1.24c-8.46.55-4.9,3-8.39,3.3-6.1.58-4.09-1.53-10.08-1.53-6.3,0-6.8.7-9.28,2.15-3.81,2.22-4.83-1.77-9.8-2.68v39.07l30.66,18.35Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-16)"/>
                         <path id="fuel_right_EXT" d="M654.88,283.23c-3.67-5-20.31-7.22-31.53-7.15-22.6.13-21.07-2.86-40.79-5.39-14.27-.81-22.7,4.11-31.49,4.59-16.72.93-20.19-6.81-42.24-2.82-15.69,2.84-32-5.78-31.49,14.09S500,305.44,500,305.44c16.25,1.51,53.49-.23,68.11-.77C600.82,303.34,661.05,291.72,654.88,283.23Z" transform="translate(-4.51 -14.6)" fillRule="evenodd" fill="url(#linear-gradient-14)"/>
                     </g>
@@ -4436,7 +2391,6 @@ class App extends React.Component {
 
                     */}
                     <g id="unanimated_springValves">
-                        <path d="M111.71,213.42h-6.06c-.71-.93-1.81-1.12-1.81-2.39h0c0-1.25,1.1-1.45,1.81-2.39h6.06c1,0,1.8-3.55,1.8,2.39h0C113.51,216.64,112.7,213.42,111.71,213.42Z" transform="translate(-4.51 -14.6)" fill="#949494"/>
                         <path d="M627,208.51H633c.7.93,1.8,1.12,1.8,2.39h0c0,1.25-1.1,1.46-1.8,2.39H627c-1,0-1.8,3.55-1.8-2.39h0C625.15,205.29,626,208.51,627,208.51Z" transform="translate(-4.51 -14.6)" fill="#949494"/>
                         <g id="springVal_back-3">
                         <rect x="490.76" y="190.69" width="7.03" height="16.1" rx="1.79" fill="#fff"/>
@@ -4446,14 +2400,7 @@ class App extends React.Component {
                         <circle cx="494.27" cy="203.21" r="2.76" fill="#666"/>
                         <path d="M499.82,215.49s-3.71-.3-3.53-1.27c.29-1.63,4.36-1.52,4.36-1.52s-5,.64-4.39-.8c.52-1.14,4.39-1.35,4.39-1.35s-5.19.6-4.47-.87,4.71-1.35,4.71-1.35-5.79.4-4.48-1.13c.86-1,4.48-1.17,4.48-1.17" transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
                         </g>
-                        <g id="springVal_back-4">
-                        <path d="M85.31,192.85H97.83a1.78,1.78,0,0,1,1.78,1.78v3.46a1.79,1.79,0,0,1-1.79,1.79H85.31a1.79,1.79,0,0,1-1.79-1.79v-3.46A1.79,1.79,0,0,1,85.31,192.85Z" fill="#fff"/>
-                        <path d="M102.35,207.83a1.41,1.41,0,0,1,1.41,1.41v3.45a1.41,1.41,0,0,1-1.41,1.41H89.82a1.41,1.41,0,0,1-1.41-1.41v-3.45a1.41,1.41,0,0,1,1.41-1.41h12.53m0-.75H89.82a2.16,2.16,0,0,0-2.16,2.16v3.45a2.16,2.16,0,0,0,2.16,2.16h12.53a2.16,2.16,0,0,0,2.16-2.16v-3.45a2.16,2.16,0,0,0-2.16-2.16Z" transform="translate(-4.51 -14.6)" fill="#666"/>
-                        </g>
-                        <g id="springVal-4">
-                        <circle cx="96.04" cy="196.36" r="2.76" fill="#666"/>
-                        <path d="M98.24,209.93s-.3,3.7-1.27,3.53c-1.63-.29-1.53-4.36-1.53-4.36s.64,5-.79,4.39c-1.14-.52-1.35-4.39-1.35-4.39s.59,5.19-.88,4.47-1.35-4.71-1.35-4.71.4,5.78-1.12,4.48c-1-.87-1.18-4.48-1.18-4.48" transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
-                        </g>
+                        
                         <g id="springVal_back-5">
                         <path d="M631.91,192.85h12.53a1.78,1.78,0,0,1,1.78,1.78v3.46a1.79,1.79,0,0,1-1.79,1.79H631.91a1.79,1.79,0,0,1-1.79-1.79v-3.46A1.79,1.79,0,0,1,631.91,192.85Z" fill="#fff"/>
                         <path d="M649,207.83a1.41,1.41,0,0,1,1.41,1.41v3.45A1.41,1.41,0,0,1,649,214.1H636.42a1.41,1.41,0,0,1-1.41-1.41v-3.45a1.41,1.41,0,0,1,1.41-1.41H649m0-.75H636.42a2.16,2.16,0,0,0-2.16,2.16v3.45a2.16,2.16,0,0,0,2.16,2.16H649a2.16,2.16,0,0,0,2.16-2.16v-3.45a2.16,2.16,0,0,0-2.16-2.16Z" transform="translate(-4.51 -14.6)" fill="#666"/>
@@ -4478,32 +2425,8 @@ class App extends React.Component {
                         <path d="M516.83,41.22s3.7,1.13,3.52,2.1c-.29,1.62-4.35,1.52-4.35,1.52s5-.64,4.38.79C519.86,46.78,516,47,516,47s5.18-.59,4.47.88-4.71,1.35-4.71,1.35,5.78-.4,4.47,1.13c-.86,1-4.47,1.17-4.47,1.17" transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
                         <polygon points="513.35 22.12 510.42 27.06 516.28 27.06 513.35 22.12" fill="#666"/>
                         </g>
-                        <g>
-                        <path d="M202.6,21.55h3.46a1.78,1.78,0,0,1,1.78,1.78V35.86a1.79,1.79,0,0,1-1.79,1.79H202.6a1.78,1.78,0,0,1-1.78-1.78V23.33A1.78,1.78,0,0,1,202.6,21.55Z" fill="#fff"/>
-                        <path d="M210.57,36.53A1.41,1.41,0,0,1,212,37.94V50.46a1.41,1.41,0,0,1-1.41,1.41h-3.46a1.41,1.41,0,0,1-1.41-1.41V37.94a1.41,1.41,0,0,1,1.41-1.41h3.46m0-.75h-3.46A2.16,2.16,0,0,0,205,37.94V50.46a2.16,2.16,0,0,0,2.16,2.16h3.46a2.16,2.16,0,0,0,2.16-2.16V37.94a2.16,2.16,0,0,0-2.16-2.16Z" transform="translate(-4.51 -14.6)" fill="#666"/>
-                        </g>
-                        <g>
-                        <path d="M207.81,41.22s3.7,1.13,3.53,2.1c-.3,1.62-4.36,1.52-4.36,1.52s5-.64,4.38.79C210.84,46.78,207,47,207,47s5.18-.59,4.47.88-4.71,1.35-4.71,1.35,5.78-.4,4.48,1.13c-.87,1-4.48,1.17-4.48,1.17" transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
-                        <polygon points="204.33 22.12 201.4 27.06 207.26 27.06 204.33 22.12" fill="#666"/>
-                        </g>
-                        <g>
-                        <path d="M88.23,21.55h3.46a1.78,1.78,0,0,1,1.78,1.78V35.86a1.79,1.79,0,0,1-1.79,1.79H88.23a1.78,1.78,0,0,1-1.78-1.78V23.33A1.79,1.79,0,0,1,88.23,21.55Z" fill="#fff"/>
-                        <path d="M96.2,36.53a1.41,1.41,0,0,1,1.41,1.41V50.46a1.41,1.41,0,0,1-1.41,1.41H92.74a1.41,1.41,0,0,1-1.41-1.41V37.94a1.41,1.41,0,0,1,1.41-1.41H96.2m0-.75H92.74a2.16,2.16,0,0,0-2.16,2.16V50.46a2.16,2.16,0,0,0,2.16,2.16H96.2a2.16,2.16,0,0,0,2.16-2.16V37.94a2.16,2.16,0,0,0-2.16-2.16Z" transform="translate(-4.51 -14.6)" fill="#666"/>
-                        </g>
-                        <g>
-                        <path d="M93.43,41.22s3.71,1.13,3.53,2.1c-.29,1.62-4.35,1.52-4.35,1.52s5-.64,4.38.79C96.47,46.78,92.61,47,92.61,47s5.18-.59,4.47.88-4.72,1.35-4.72,1.35,5.79-.4,4.48,1.13c-.86,1-4.48,1.17-4.48,1.17" transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
-                        <polygon points="89.95 22.12 87.03 27.06 92.88 27.06 89.95 22.12" fill="#666"/>
-                        </g>
-                        <g>
-                        <g>
-                            <path d="M22.59,145.9H35.12a1.78,1.78,0,0,1,1.78,1.78v3.46a1.79,1.79,0,0,1-1.79,1.79H22.59a1.79,1.79,0,0,1-1.79-1.79v-3.46A1.78,1.78,0,0,1,22.59,145.9Z" fill="#fff"/>
-                            <path d="M39.63,160.88A1.41,1.41,0,0,1,41,162.29v3.45a1.41,1.41,0,0,1-1.41,1.41H27.11a1.41,1.41,0,0,1-1.41-1.41v-3.45a1.41,1.41,0,0,1,1.41-1.41H39.63m0-.75H27.11A2.15,2.15,0,0,0,25,162.29v3.45a2.15,2.15,0,0,0,2.16,2.16H39.63a2.15,2.15,0,0,0,2.16-2.16v-3.45a2.15,2.15,0,0,0-2.16-2.16Z" transform="translate(-4.51 -14.6)" fill="#666"/>
-                        </g>
-                        <g>
-                            <path d="M36.35,163s-1.13,3.7-2.1,3.53c-1.62-.29-1.52-4.36-1.52-4.36s.64,5-.8,4.39c-1.14-.52-1.35-4.39-1.35-4.39s.6,5.19-.87,4.47-1.35-4.71-1.35-4.71.4,5.78-1.13,4.48c-1-.87-1.17-4.48-1.17-4.48" transform="translate(-4.51 -14.6)" fill="none" stroke="#666" strokeMiterlimit="10" strokeWidth="0.75"/>
-                            <polygon points="36.34 149.41 31.4 146.48 31.4 152.34 36.34 149.41" fill="#666"/>
-                        </g>
-                        </g>
+                        
+                        
                         <g>
                         <g>
                             <path d="M691.15,145.9h12.53a1.78,1.78,0,0,1,1.78,1.78v3.46a1.79,1.79,0,0,1-1.79,1.79H691.15a1.79,1.79,0,0,1-1.79-1.79v-3.46A1.79,1.79,0,0,1,691.15,145.9Z" fill="#fff"/>
@@ -4523,131 +2446,64 @@ class App extends React.Component {
                     */}
                     
                     <g id="tanks_details">
-                    <polyline points="134.32 179.58 134.32 154.1 144.02 154.1 149.38 157.41" fill="none" stroke="#737373" strokeMiterlimit="10" fillRule="evenodd"/>
-                    <polyline points="239.01 190.15 239.01 164.67 243.71 164.67 249.07 167.98" fill="none" stroke="#737373" strokeMiterlimit="10" fillRule="evenodd"/>
-                    <line x1="167.91" y1="152.95" x2="155.6" y2="152.95" stroke="#737373" strokeLinejoin="round" fill="url(#linear-gradient-21)"/>
-                    <line x1="260.19" y1="160.39" x2="247.88" y2="160.39" stroke="#737373" strokeLinejoin="round" fill="url(#linear-gradient-22)"/>
-                    <line x1="477.39" y1="160.39" x2="465.08" y2="160.39" stroke="#737373" strokeLinejoin="round" fill="url(#linear-gradient-23)"/>
-                    <g>
-                        <rect x="158.84" y="143.65" width="6.35" height="5.32" stroke="#737373" strokeLinejoin="round" strokeWidth="0.5" fill="url(#linear-gradient-24)"/>
-                        <circle cx="162.01" cy="146.31" r="1.28" fill="#737373"/>
-                    </g>
-                    <polyline points="586.84 180.58 586.84 155.1 577.14 155.1 571.77 158.41" fill="none" stroke="#737373" strokeMiterlimit="10" fillRule="evenodd"/>
-                    <polyline points="486.65 190.15 486.65 164.67 481.95 164.67 476.59 167.98" fill="none" stroke="#737373" strokeMiterlimit="10" fillRule="evenodd"/>
-                    <line x1="569.37" y1="152.95" x2="557.06" y2="152.95" stroke="#737373" strokeLinejoin="round" fill="url(#linear-gradient-25)"/>
-                    <g>
-                        <rect x="560.72" y="143.65" width="6.35" height="5.32" stroke="#737373" strokeLinejoin="round" strokeWidth="0.5" fill="url(#linear-gradient-26)"/>
-                        <circle cx="563.89" cy="146.31" r="1.28" fill="#737373"/>
-                    </g>
-                    <g>
-                        <rect x="250.96" y="150.78" width="6.35" height="5.32" stroke="#737373" strokeLinejoin="round" strokeWidth="0.5" fill="url(#linear-gradient-27)"/>
-                        <circle cx="254.13" cy="153.44" r="1.28" fill="#737373"/>
-                    </g>
-                    <g>
-                        <rect x="468.11" y="150.78" width="6.35" height="5.32" stroke="#737373" strokeLinejoin="round" strokeWidth="0.5" fill="url(#linear-gradient-28)"/>
-                        <circle cx="471.28" cy="153.44" r="1.28" fill="#737373"/>
-                    </g>
-                    <g>
-                        <line x1="221.92" y1="168.76" x2="221.92" y2="171.72" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <line x1="226.2" y1="168.76" x2="226.2" y2="171.72" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <rect x="217.16" y="171.54" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                        <g id="rotary_valve">
-                        <path id="path6519" d="M233,192.35a4.57,4.57,0,0,1-9.14,0h0a4.57,4.57,0,1,1,9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
-                        <line x1="220.65" y1="177.75" x2="227.22" y2="177.75" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                        <line x1="477.39" y1="160.39" x2="465.08" y2="160.39" stroke="#737373" strokeLinejoin="round" fill="url(#linear-gradient-23)"/>
+                        
+                        <polyline points="586.84 180.58 586.84 155.1 577.14 155.1 571.77 158.41" fill="none" stroke="#737373" strokeMiterlimit="10" fillRule="evenodd"/>
+                        <polyline points="486.65 190.15 486.65 164.67 481.95 164.67 476.59 167.98" fill="none" stroke="#737373" strokeMiterlimit="10" fillRule="evenodd"/>
+                        <line x1="569.37" y1="152.95" x2="557.06" y2="152.95" stroke="#737373" strokeLinejoin="round" fill="url(#linear-gradient-25)"/>
+                        <g>
+                            <rect x="560.72" y="143.65" width="6.35" height="5.32" stroke="#737373" strokeLinejoin="round" strokeWidth="0.5" fill="url(#linear-gradient-26)"/>
+                            <circle cx="563.89" cy="146.31" r="1.28" fill="#737373"/>
                         </g>
-                        <rect x="218.27" y="163.44" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
-                    </g>
-                    <g>
-                        <line x1="397.78" y1="162.68" x2="397.78" y2="165.64" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <line x1="402.06" y1="162.68" x2="402.06" y2="165.64" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <rect x="393.02" y="165.46" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                        <g id="rotary_valve-2">
-                        <path id="path6519-2" d="M408.86,186.27a4.57,4.57,0,1,1-9.14,0h0a4.57,4.57,0,0,1,9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
-                        <line x1="396.51" y1="171.67" x2="403.08" y2="171.67" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                        
+                        <g>
+                            <rect x="468.11" y="150.78" width="6.35" height="5.32" stroke="#737373" strokeLinejoin="round" strokeWidth="0.5" fill="url(#linear-gradient-28)"/>
+                            <circle cx="471.28" cy="153.44" r="1.28" fill="#737373"/>
                         </g>
-                        <rect x="394.13" y="157.36" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
-                    </g>
-                    <g>
-                        <line x1="500.1" y1="169.31" x2="500.1" y2="172.27" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <line x1="504.39" y1="169.31" x2="504.39" y2="172.27" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <rect x="495.34" y="172.09" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                        <g id="rotary_valve-3">
-                        <path id="path6519-3" d="M511.19,192.9a4.57,4.57,0,0,1-9.14,0h0a4.57,4.57,0,1,1,9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
-                        <line x1="498.84" y1="178.3" x2="505.41" y2="178.3" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                        
+                        <g>
+                            <line x1="397.78" y1="162.68" x2="397.78" y2="165.64" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
+                            <line x1="402.06" y1="162.68" x2="402.06" y2="165.64" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
+                            <rect x="393.02" y="165.46" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
+                            <g id="rotary_valve-2">
+                            <path id="path6519-2" d="M408.86,186.27a4.57,4.57,0,1,1-9.14,0h0a4.57,4.57,0,0,1,9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
+                            <line x1="396.51" y1="171.67" x2="403.08" y2="171.67" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                            </g>
+                            <rect x="394.13" y="157.36" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
                         </g>
-                        <rect x="496.45" y="163.99" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
-                    </g>
-                    <g>
-                        <line x1="649.95" y1="158.11" x2="649.95" y2="161.07" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <line x1="654.24" y1="158.11" x2="654.24" y2="161.07" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <rect x="645.19" y="160.89" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                        <g id="rotary_valve-4">
-                        <path id="path6519-4" d="M661,181.7a4.58,4.58,0,0,1-9.15,0h0a4.58,4.58,0,0,1,9.15,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
-                        <line x1="648.68" y1="167.1" x2="655.26" y2="167.1" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                        <g>
+                            <line x1="500.1" y1="169.31" x2="500.1" y2="172.27" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
+                            <line x1="504.39" y1="169.31" x2="504.39" y2="172.27" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
+                            <rect x="495.34" y="172.09" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
+                            <g id="rotary_valve-3">
+                            <path id="path6519-3" d="M511.19,192.9a4.57,4.57,0,0,1-9.14,0h0a4.57,4.57,0,1,1,9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
+                            <line x1="498.84" y1="178.3" x2="505.41" y2="178.3" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                            </g>
+                            <rect x="496.45" y="163.99" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
                         </g>
-                        <rect x="646.3" y="152.79" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
-                    </g>
-                    <g>
-                        <line x1="323.29" y1="162.68" x2="323.29" y2="165.64" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <line x1="327.57" y1="162.68" x2="327.57" y2="165.64" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <rect x="318.53" y="165.46" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                        <g id="rotary_valve-5">
-                        <path id="path6519-5" d="M334.38,186.27a4.58,4.58,0,1,1-9.15,0h0a4.58,4.58,0,0,1,9.15,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
-                        <line x1="322.02" y1="171.67" x2="328.6" y2="171.67" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                        <g>
+                            <line x1="649.95" y1="158.11" x2="649.95" y2="161.07" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
+                            <line x1="654.24" y1="158.11" x2="654.24" y2="161.07" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
+                            <rect x="645.19" y="160.89" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
+                            <g id="rotary_valve-4">
+                            <path id="path6519-4" d="M661,181.7a4.58,4.58,0,0,1-9.15,0h0a4.58,4.58,0,0,1,9.15,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
+                            <line x1="648.68" y1="167.1" x2="655.26" y2="167.1" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                            </g>
+                            <rect x="646.3" y="152.79" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
                         </g>
-                        <rect x="319.64" y="157.36" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
+                        
+                        <g>
+                            <line x1="554.99" y1="283.59" x2="554.99" y2="280.63" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
+                            <line x1="550.7" y1="283.59" x2="550.7" y2="280.63" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
+                            <rect x="550.73" y="282.99" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" transform="translate(1110.48 563.8) rotate(-180)"/>
+                            <g id="rotary_valve-7">
+                            <path id="path6519-7" d="M552.93,289.2a4.57,4.57,0,0,1,9.14,0h0a4.57,4.57,0,0,1-9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
+                            <line x1="556.29" y1="274.6" x2="549.63" y2="274.6" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
+                            </g>
+                            <rect x="551.85" y="298.19" width="11.3" height="5.32" transform="translate(1110.48 587.1) rotate(180)" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
+                        </g> 
                     </g>
-                    <g>
-                        <line x1="175.72" y1="283.59" x2="175.72" y2="280.63" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <line x1="171.43" y1="283.59" x2="171.43" y2="280.63" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <rect x="171.47" y="282.99" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" transform="translate(351.95 563.8) rotate(-180)"/>
-                        <g id="rotary_valve-6">
-                        <path id="path6519-6" d="M173.66,289.2a4.57,4.57,0,0,1,9.14,0h0a4.57,4.57,0,0,1-9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
-                        <line x1="177.02" y1="274.6" x2="170.37" y2="274.6" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
-                        </g>
-                        <rect x="172.58" y="298.19" width="11.3" height="5.32" transform="translate(351.95 587.1) rotate(180)" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
-                    </g>
-                    <g>
-                        <line x1="554.99" y1="283.59" x2="554.99" y2="280.63" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <line x1="550.7" y1="283.59" x2="550.7" y2="280.63" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <rect x="550.73" y="282.99" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" transform="translate(1110.48 563.8) rotate(-180)"/>
-                        <g id="rotary_valve-7">
-                        <path id="path6519-7" d="M552.93,289.2a4.57,4.57,0,0,1,9.14,0h0a4.57,4.57,0,0,1-9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
-                        <line x1="556.29" y1="274.6" x2="549.63" y2="274.6" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
-                        </g>
-                        <rect x="551.85" y="298.19" width="11.3" height="5.32" transform="translate(1110.48 587.1) rotate(180)" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
-                    </g>
-                    <g>
-                        <line x1="74.38" y1="158.83" x2="74.38" y2="161.79" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <line x1="78.67" y1="158.83" x2="78.67" y2="161.79" fill="none" stroke="#595959" strokeLinejoin="round" strokeWidth="2"/>
-                        <rect x="69.62" y="161.61" width="13.53" height="12.42" fill="#4f4f4f" stroke="#949494" strokeLinecap="round" strokeLinejoin="round"/>
-                        <g id="rotary_valve-8">
-                        <path id="path6519-8" d="M85.47,182.42a4.57,4.57,0,1,1-9.14,0h0a4.57,4.57,0,1,1,9.14,0Z" transform="translate(-4.51 -14.6)" fill="#f5e41f" stroke="#ffe41f" strokeWidth="0.5" fillRule="evenodd"/>
-                        <line x1="73.09" y1="167.82" x2="79.65" y2="167.82" fill="#fff" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/>
-                        </g>
-                        <rect x="70.73" y="153.51" width="11.3" height="5.32" strokeWidth="0.5" stroke="#949494" strokeLinecap="round" strokeLinejoin="round" fill="#4f4f4f"/>
-                    </g>
-                    </g>
-
-
                     <g id="dump_masts">
-                        <g id="left_fuel_spray" visibility="hidden">
-                            <g>
-                                <line x1="12.7" y1="261.69" x2="13.34" y2="263.04" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
-                                <line x1="14.08" y1="264.6" x2="15.54" y2="267.72" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="2.58 1.72"/>
-                                <line x1="15.91" y1="268.5" x2="16.55" y2="269.86" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
-                            </g>
-                            <g>
-                                <line x1="10.98" y1="261.69" x2="10.98" y2="263.19" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
-                                <line x1="10.98" y1="264.72" x2="10.98" y2="267.78" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="2.3 1.53"/>
-                                <line x1="10.98" y1="268.55" x2="10.98" y2="270.05" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
-                            </g>
-                            <g>
-                                <line x1="9.3" y1="261.69" x2="8.66" y2="263.04" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
-                                <line x1="7.93" y1="264.6" x2="6.46" y2="267.72" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="2.58 1.72"/>
-                                <line x1="6.09" y1="268.5" x2="5.45" y2="269.86" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
-                            </g>
-                        </g>
                         <g id="right_fuel_spray" visibility="hidden">
                             <g>
                                 <line x1="718.08" y1="261.69" x2="718.72" y2="263.04" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
@@ -4663,74 +2519,6 @@ class App extends React.Component {
                                 <line x1="714.68" y1="261.69" x2="714.04" y2="263.04" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
                                 <line x1="713.31" y1="264.6" x2="711.84" y2="267.72" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10" strokeDasharray="2.58 1.72"/>
                                 <line x1="711.47" y1="268.5" x2="710.84" y2="269.86" fill="none" stroke="#00ce9e" strokeLinecap="round" strokeMiterlimit="10"/>
-                            </g>
-                        </g>
-                        <g id="left_dump_mast">
-                            <rect x="7.68" y="254.7" width="6.61" height="6.3" fill="#e0e0e0"/>
-                            <g>
-                                <g>
-                                    <circle cx="9.18" cy="255.37" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="8.3" cy="255.37" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="10.11" cy="255.37" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.02" cy="255.37" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.91" cy="255.37" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="12.81" cy="255.37" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="13.7" cy="255.37" r="0.41" fill="#e9e9e9"/>
-                                </g>
-                                <g>
-                                    <circle cx="9.18" cy="256.2" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="8.3" cy="256.2" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="10.11" cy="256.2" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.02" cy="256.2" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.91" cy="256.2" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="12.81" cy="256.2" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="13.7" cy="256.2" r="0.41" fill="#e9e9e9"/>
-                                </g>
-                                <g>
-                                    <circle cx="9.18" cy="257.03" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="8.3" cy="257.03" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="10.11" cy="257.03" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.02" cy="257.03" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.91" cy="257.03" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="12.81" cy="257.03" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="13.7" cy="257.03" r="0.41" fill="#e9e9e9"/>
-                                </g>
-                                <g>
-                                    <circle cx="9.18" cy="257.86" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="8.3" cy="257.86" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="10.11" cy="257.86" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.02" cy="257.86" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.91" cy="257.86" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="12.81" cy="257.86" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="13.7" cy="257.86" r="0.41" fill="#e9e9e9"/>
-                                </g>
-                                <g>
-                                    <circle cx="9.18" cy="258.69" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="8.3" cy="258.69" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="10.11" cy="258.69" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.02" cy="258.69" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.91" cy="258.69" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="12.81" cy="258.69" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="13.7" cy="258.69" r="0.41" fill="#e9e9e9"/>
-                                </g>
-                                <g>
-                                    <circle cx="9.18" cy="259.52" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="8.3" cy="259.52" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="10.11" cy="259.52" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.02" cy="259.52" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.91" cy="259.52" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="12.81" cy="259.52" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="13.7" cy="259.52" r="0.41" fill="#e9e9e9"/>
-                                </g>
-                                <g>
-                                    <circle cx="9.18" cy="260.35" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="8.3" cy="260.35" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="10.11" cy="260.35" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.02" cy="260.35" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="11.91" cy="260.35" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="12.81" cy="260.35" r="0.41" fill="#e9e9e9"/>
-                                    <circle cx="13.7" cy="260.35" r="0.41" fill="#e9e9e9"/>
-                                </g>
                             </g>
                         </g>
                         <g id="right_dump_mast">
